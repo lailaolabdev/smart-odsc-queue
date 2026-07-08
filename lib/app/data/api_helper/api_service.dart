@@ -56,13 +56,26 @@ class HelpersApi {
   }
 
   Future<void> _checkAndRefreshToken() async {
+    // ALWAYS sync the interceptor with the current stored token.
+    //
+    // The previous implementation only updated the interceptor when
+    // the token was NOT about to expire — which meant:
+    //   • After hot-restart, the singleton's in-memory token starts as
+    //     null. If the stored token was within 5 min of expiry, the
+    //     interceptor stayed null → request goes out without Bearer
+    //     header → backend returns 401 → AuthInterceptor kicks user
+    //     to /login. This was the cause of "switched account → feedback
+    //     submit → bounced to login" reports.
+    //   • After re-login on a kept-alive singleton, the in-memory
+    //     token could lag behind storage.
+    //
+    // Real refresh logic (calling the refresh-token endpoint) would
+    // still slot in here, but the sync must happen unconditionally.
     final token = JwtHelper.getStoredToken();
-    if (token != null) {
-      if (JwtHelper.willExpireInMinutes(token, 5)) {
-        // Refresh logic would go here
-      } else {
-        _authInterceptor.setToken(token);
-      }
+    if (token != null && token.isNotEmpty) {
+      _authInterceptor.setToken(token);
+    } else {
+      _authInterceptor.clearToken();
     }
   }
 
@@ -80,6 +93,31 @@ class HelpersApi {
       return _handleResponse(response);
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// POST without the Authorization header.
+  ///
+  /// Used for endpoints that the `master-data` microservice rejects when
+  /// presented with an officer token (cross-service JWT verify mismatch
+  /// — see notes in [AuthenticationInterceptor]). Bypasses the
+  /// interceptor stack entirely by using a plain `http.Client`.
+  Future<Map<String, dynamic>> postPublic(
+    String endpoint, {
+    Map<String, dynamic>? data,
+  }) async {
+    final client = http.Client();
+    try {
+      final response = await client
+          .post(
+            Uri.parse('${ApiEndpoints.baseUrl}$endpoint'),
+            headers: _baseHeaders,
+            body: data != null ? jsonEncode(data) : null,
+          )
+          .timeout(timeoutDuration);
+      return _handleResponse(response);
+    } finally {
+      client.close();
     }
   }
 
@@ -151,4 +189,11 @@ class ApiException implements Exception {
     required this.message,
     this.response,
   });
+
+  // Without this override, e.toString() returns "Instance of 'ApiException'"
+  // which (a) leaks into error dialogs when generic handlers call
+  // toString() and (b) is useless in logs. Surface the status code so
+  // the failure mode is always identifiable from a stack trace.
+  @override
+  String toString() => 'ApiException($statusCode): ${message ?? ''}';
 }

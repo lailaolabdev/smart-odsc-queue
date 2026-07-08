@@ -49,3 +49,12 @@ android/app/build/outputs/apk/
 android/app/build/intermediates/assets/
 *.apk
 *.bin
+
+# Release signing — keep credentials out of source control.
+# Loss of the keystore means losing the ability to ship updates with
+# the same package signature; keep a secure off-repo backup.
+android/key.properties
+android/*.jks
+android/*.keystore
+*.keystore
+

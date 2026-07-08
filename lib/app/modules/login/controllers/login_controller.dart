@@ -28,14 +28,14 @@ class LoginController extends GetxController {
   Future<void> login() async {
     if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
       CustomDialog.showError(
-        title: 'Error',
-        message: 'Please enter username and password',
+        title: 'common.error'.tr,
+        message: 'login.error.empty_fields'.tr,
       );
       return;
     }
 
     _isLoading.value = true;
-    CustomDialog.showLoading(message: 'Logging in...');
+    CustomDialog.showLoading(message: 'login.loading'.tr);
 
     try {
       final response = await _authRepository.loginOfficer(
@@ -61,23 +61,37 @@ class LoginController extends GetxController {
         await _secureStorage.setUsername(usernameController.text);
         await _secureStorage.setPassword(passwordController.text);
 
-        // Check if printer is configured
-        final selectedPrinter = storage.read('selected_printer');
-        if (selectedPrinter == null) {
-          Get.offAllNamed('/printer');
-        } else {
-          Get.offAllNamed('/kiosk');
-        }
+        // First-login on this device → printer not paired yet → send
+        // staff to the pairing screen so the kiosk is print-ready
+        // before the first customer arrives. Re-logins on a device
+        // that already has a saved printer skip straight to the
+        // welcome screen.
+        final hasPrinter = storage.read('selected_printer') != null;
+        Get.offAllNamed(hasPrinter ? '/kiosk' : '/printer');
       } else {
         CustomDialog.showError(
-          title: 'Login Failed',
-          message: 'Invalid credentials',
+          title: 'login.error.failed_title'.tr,
+          message: 'login.error.invalid_credentials'.tr,
         );
       }
+    } on ApiException catch (e) {
+      // 400 / 401 on the login endpoint always means "wrong credentials"
+      // in this app's backend. The generic 401 string is
+      // "Please sign in again" — correct for session-expired
+      // anywhere else, wrong here (we ARE on the login screen).
+      CustomDialog.hideLoading();
+      AppLogger.warning('Login failed ${e.statusCode}: ${e.message}');
+      final isAuthFailure = e.statusCode == 400 || e.statusCode == 401;
+      CustomDialog.showError(
+        title: 'login.error.failed_title'.tr,
+        message: isAuthFailure
+            ? 'login.error.invalid_credentials'.tr
+            : ErrorHandler.getMessage(e),
+      );
     } catch (e) {
       CustomDialog.hideLoading();
       CustomDialog.showError(
-        title: 'Error',
+        title: 'common.error'.tr,
         message: ErrorHandler.getMessage(e),
       );
     } finally {

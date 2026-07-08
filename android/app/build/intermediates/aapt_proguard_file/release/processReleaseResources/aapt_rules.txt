@@ -1,4 +1,5 @@
 -keep class android.app.Application { <init>(); }
+-keep class androidx.camera.core.impl.MetadataHolderService { <init>(); }
 -keep class androidx.core.app.CoreComponentFactory { <init>(); }
 -keep class androidx.profileinstaller.ProfileInstallReceiver { <init>(); }
 -keep class androidx.startup.InitializationProvider { <init>(); }
@@ -15,6 +16,8 @@
 -keep class com.google.firebase.iid.FirebaseInstanceIdReceiver { <init>(); }
 -keep class com.google.firebase.messaging.FirebaseMessagingService { <init>(); }
 -keep class com.google.firebase.provider.FirebaseInitProvider { <init>(); }
+-keep class com.google.mlkit.common.internal.MlKitComponentDiscoveryService { <init>(); }
+-keep class com.google.mlkit.common.internal.MlKitInitProvider { <init>(); }
 -keep class com.journeyapps.barcodescanner.CaptureActivity { <init>(); }
 -keep class com.pichillilorenzo.flutter_inappwebview_android.chrome_custom_tabs.ActionBroadcastReceiver { <init>(); }
 -keep class com.pichillilorenzo.flutter_inappwebview_android.chrome_custom_tabs.ChromeCustomTabsActivity { <init>(); }
@@ -31,6 +34,8 @@
 -keep class io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService { <init>(); }
 -keep class io.flutter.plugins.imagepicker.ImagePickerFileProvider { <init>(); }
 -keep class io.flutter.plugins.urllauncher.WebViewActivity { <init>(); }
+-keep class sk.fourq.otaupdate.InstallResultReceiver { <init>(); }
+-keep class sk.fourq.otaupdate.OtaUpdateFileProvider { <init>(); }
 -keep class android.widget.SearchView { <init>(android.content.Context); }
 
 -keep class android.widget.Space { <init>(android.content.Context, android.util.AttributeSet); }

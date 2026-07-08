@@ -19,6 +19,13 @@ class AppConstants {
 
   static const Duration apiTimeout = Duration(seconds: 30);
   static const Duration shortAnimationDuration = Duration(milliseconds: 300);
+
+  // Reference canvas the whole kiosk UI is hand-tuned for (logical points,
+  // landscape) — measured directly off the actual test iPad. Every screen
+  // is scaled to fit this box (see main.dart's GetMaterialApp.builder) so
+  // a phone in landscape renders a miniature of the same iPad layout
+  // instead of reflowing.
+  static const Size designCanvasSize = Size(1280, 800);
 }
 
 class StorageKeys {

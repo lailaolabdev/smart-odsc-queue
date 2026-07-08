@@ -10,7 +10,7 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ໜ້າຫຼັກ'),
+        title: Text('admin.home.title'.tr),
         backgroundColor: ColorConstants.mainCorlor,
         foregroundColor: Colors.white,
         actions: [
@@ -20,15 +20,15 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.home, size: 100, color: ColorConstants.mainCorlor),
-            SizedBox(height: 16),
+            const Icon(Icons.home, size: 100, color: ColorConstants.mainCorlor),
+            const SizedBox(height: 16),
             Text(
-              'ຍິນດີຕ້ອນຮັບສູ່ລະບົບຈັດການຄິວ',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'admin.home.welcome'.tr,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),

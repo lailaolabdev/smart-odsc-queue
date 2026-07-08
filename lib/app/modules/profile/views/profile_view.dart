@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_odsc_queue/app/shared/constants/app_constants.dart';
+import 'package:smart_odsc_queue/app/shared/widgets/loading_indicator.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -10,14 +11,14 @@ class ProfileView extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ໂປຣໄຟລ໌'),
+        title: Text('admin.profile.title'.tr),
         backgroundColor: ColorConstants.mainCorlor,
         foregroundColor: Colors.white,
       ),
       body: Obx(() {
         final user = controller.user.value;
         if (user == null) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: LoadingIndicator());
         }
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -44,14 +45,8 @@ class ProfileView extends GetView<ProfileController> {
               ),
               const SizedBox(height: 32),
               _buildMenuItem(
-                icon: Icons.print,
-                title: 'ຕັ້ງຄ່າເຄື່ອງພິມ',
-                onTap: controller.goToPrinterSettings,
-              ),
-              const Divider(),
-              _buildMenuItem(
                 icon: Icons.logout,
-                title: 'ອອກຈາກລະບົບ',
+                title: 'admin.profile.logout'.tr,
                 onTap: controller.logout,
                 color: Colors.red,
               ),

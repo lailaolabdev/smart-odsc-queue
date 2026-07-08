@@ -1,7 +1,13 @@
 // API Endpoints Configuration
 class ApiEndpoints {
-  // Base URL
-  static const String baseUrl = 'https://api.odsc.gov.la';
+  // Base URL — production default. Override at build time with
+  //   flutter run        --dart-define=BASE_URL=http://192.168.1.62:8084
+  //   flutter build apk  --dart-define=BASE_URL=...
+  // No override + a release build → hits production directly.
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'https://api.odsc.gov.la',
+  );
   static const String storageBaseUrl =
       'https://storage-console.odsc.gov.la/odsc-public-storage/images/medium/';
 
@@ -33,10 +39,12 @@ class ApiEndpoints {
   static const String district = '/api/v1/master-data/district';
   static const String faq = '/api/v1/master-data/faq';
   static const String feedback = '/api/v1/master-data/feedback';
+  static const String appVersion = '/api/v1/master-data/app-version';
 
   // Services
   static const String services = '/api/v1/core/services';
   static const String queues = '/api/v1/core/queues';
+  static const String applications = '/api/v1/core/applications';
 
   // Profile / KYC
   static String citizenKyc(String userId) => '/api/v1/user/kyc/$userId';

@@ -6,6 +6,8 @@ import 'package:smart_odsc_queue/app/modules/kiosk/controllers/kiosk_controller.
 import 'package:smart_odsc_queue/app/shared/constants/app_constants.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
+import 'package:smart_odsc_queue/app/shared/widgets/loading_indicator.dart';
+// .tr extension comes from the `get` import above.
 
 class ServiceDetailPage extends StatefulWidget {
   final String serviceId;
@@ -158,11 +160,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
         centerTitle: false,
       ),
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: ColorConstants.mainCorlor,
-              ),
-            )
+          ? const Center(child: LoadingIndicator(size: 120))
           : (error != null || service == null)
           ? Center(
               child: Column(
@@ -170,11 +168,11 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                 children: [
                   const Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 12),
-                  Text(error ?? 'Failed to load'),
+                  Text(error ?? 'common.failed_to_load'.tr),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: _fetchDetail,
-                    child: const Text('Retry'),
+                    child: Text('common.retry'.tr),
                   ),
                 ],
               ),
@@ -230,14 +228,9 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: const EdgeInsets.all(12),
             child:
                 service['icon'] != null && service['icon'].toString().isNotEmpty
                 ? Image.network(
@@ -287,7 +280,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        orgName ?? 'ຫ້ອງການລັດຖະບານ',
+                        orgName ?? 'detail.org_fallback'.tr,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -314,26 +307,27 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
       children: [
         _buildStatItem(
           icon: Icons.access_time_rounded,
-          label: 'ເວລາຄາດການ',
-          value: '${metrics['totalDays']} ວັນ',
+          label: 'detail.stat.duration'.tr,
+          value: '${metrics['totalDays']} ${'detail.unit.days'.tr}',
         ),
         const SizedBox(width: 12),
         _buildStatItem(
           icon: Icons.payments_outlined,
-          label: 'ຄ່າທຳນຽມທັງໝົດ',
-          value: '${currencyFormat.format(metrics['totalFees'])} ກີບ',
+          label: 'detail.stat.total_fee'.tr,
+          value:
+              '${currencyFormat.format(metrics['totalFees'])} ${'detail.unit.kip'.tr}',
         ),
         const SizedBox(width: 12),
         _buildStatItem(
           icon: Icons.layers_outlined,
-          label: 'ຂັ້ນຕອນທັງໝົດ',
-          value: '${metrics['totalSteps']} ຂັ້ນຕອນ',
+          label: 'detail.stat.total_steps'.tr,
+          value: '${metrics['totalSteps']} ${'detail.unit.steps'.tr}',
         ),
         const SizedBox(width: 12),
         _buildStatItem(
           icon: Icons.description_outlined,
-          label: 'ເອກະສານທີ່ຕ້ອງມີ',
-          value: '${metrics['requiredDocs']} ລາຍການ',
+          label: 'detail.stat.required_docs'.tr,
+          value: '${metrics['requiredDocs']} ${'detail.unit.items'.tr}',
         ),
       ],
     );
@@ -409,9 +403,9 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSection(
-                title: 'ລາຍລະອຽດບໍລິການ',
+                title: 'detail.section.description'.tr,
                 child: Html(
-                  data: service['description'] ?? 'ບໍ່ມີຂໍ້ມູນລາຍລະອຽດ',
+                  data: service['description'] ?? 'detail.description.empty'.tr,
                   style: {
                     "body": Style(
                       fontSize: FontSize(16),
@@ -434,9 +428,9 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSection(
-                title: 'ຂັ້ນຕອນການອະນຸມັດ',
+                title: 'detail.section.approval_steps'.tr,
                 child: steps.isEmpty
-                    ? const Center(child: Text('ບໍ່ມີຂໍ້ມູນຂັ້ນຕອນ'))
+                    ? Center(child: Text('detail.steps.empty'.tr))
                     : Column(
                         children: List.generate(steps.length, (index) {
                           final node = steps[index];
@@ -445,7 +439,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                             title:
                                 node['data']?['label'] ??
                                 node['name'] ??
-                                'ຂັ້ນຕອນ',
+                                'detail.step.fallback_title'.tr,
                             description: node['data']?['description'],
                             days: int.tryParse(
                               node['data']?['estimatedDays']?.toString() ?? '0',
@@ -457,16 +451,41 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
               ),
               const SizedBox(height: 24),
               _buildSection(
-                title: 'ເອກະສານທີ່ຈຳເປັນ',
+                title: 'detail.section.required_docs'.tr,
                 child: (fileFields.isEmpty && sampleDocs.isEmpty)
-                    ? const Center(child: Text('ບໍ່ມີເອກะສານທີ່ຈຳເປັນ'))
+                    ? Center(child: Text('detail.docs.empty'.tr))
                     : Column(
                         children: [
                           ...fileFields.map(
-                            (f) => _buildDocItem(f['label'] ?? 'ເອກະສານ'),
+                            (f) => _buildDocItem(
+                              title:
+                                  f['label']?.toString() ??
+                                  'detail.doc.fallback_label'.tr,
+                              sample: f['sampleFile'] is Map
+                                  ? Map<String, dynamic>.from(f['sampleFile'])
+                                  : null,
+                            ),
                           ),
                           ...sampleDocs.map(
-                            (d) => _buildDocItem(d['name'] ?? 'ຕົວຢ່າງເອກະສານ'),
+                            (d) => _buildDocItem(
+                              title:
+                                  (d['name'] != null &&
+                                      d['name'].toString().isNotEmpty)
+                                  ? d['name'].toString()
+                                  : 'detail.doc.sample_fallback_label'.tr,
+                              // sampleDocuments may carry their own
+                              // `file` object (mirrors fileFields' shape)
+                              // or a top-level `url`. Try both.
+                              sample: d['file'] is Map
+                                  ? Map<String, dynamic>.from(d['file'])
+                                  : (d['url'] != null
+                                        ? {
+                                            'url': d['url'],
+                                            'name': d['name'],
+                                            'type': d['type'],
+                                          }
+                                        : null),
+                            ),
                           ),
                         ],
                       ),
@@ -530,20 +549,20 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
     if (feeType == 'FREE' || feeType == 'NONE') {
       feeIcon = const Icon(Icons.money_off_rounded, color: Colors.blueGrey);
-      feeLabel = 'ບໍ່ມີຄ່າທຳນຽມ';
-      feeDesc = 'ບໍລິການນີ້ບໍ່ມີການເກັບຄ່າທຳນຽມ';
+      feeLabel = 'detail.fee.free.label'.tr;
+      feeDesc = 'detail.fee.free.desc'.tr;
     } else if (feeType == 'FIXED') {
       feeIcon = const Icon(Icons.payments_rounded, color: Colors.blueGrey);
-      feeLabel = 'ຄ່າທຳນຽມຄົງທີ່';
-      feeDesc = 'ມີການເກັບຄ່າທຳນຽມໃນອັດຕາຄົງທີ່';
+      feeLabel = 'detail.fee.fixed.label'.tr;
+      feeDesc = 'detail.fee.fixed.desc'.tr;
     } else {
       feeIcon = const Icon(Icons.calculate_rounded, color: Colors.blueGrey);
-      feeLabel = 'ຄ່າທຳນຽມຕາມການໃຊ້ງານ';
-      feeDesc = 'ຄ່າທຳນຽມອາດປ່ຽນແປງຕາມເງື່ອນໄຂ';
+      feeLabel = 'detail.fee.variable.label'.tr;
+      feeDesc = 'detail.fee.variable.desc'.tr;
     }
 
     return _buildSection(
-      title: 'ຂໍ້ມູນຄ່າທຳນຽມ',
+      title: 'detail.section.fees'.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -590,12 +609,15 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'ລວມທັງໝົດ',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                  Text(
+                    'detail.fee.total'.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
                   ),
                   Text(
-                    '${currencyFormat.format(metrics['totalFees'])} ກີບ',
+                    '${currencyFormat.format(metrics['totalFees'])} ${'detail.unit.kip'.tr}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 22,
@@ -714,7 +736,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'ເວລາຄາດການ: $days ວັນ',
+                          '${'detail.step.duration_prefix'.tr}: $days ${'detail.unit.days'.tr}',
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -733,7 +755,13 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     );
   }
 
-  Widget _buildDocItem(String title) {
+  Widget _buildDocItem({
+    required String title,
+    Map<String, dynamic>? sample,
+  }) {
+    final String? url = sample?['url']?.toString();
+    final bool hasPreview = url != null && url.isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -764,6 +792,216 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF334155),
+              ),
+            ),
+          ),
+          if (hasPreview)
+            _DocPreviewEyeButton(
+              onTap: () => _showDocumentPreview(
+                context: context,
+                title: title,
+                sample: sample!,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDocumentPreview({
+    required BuildContext context,
+    required String title,
+    required Map<String, dynamic> sample,
+  }) {
+    final String url = sample['url']?.toString() ?? '';
+    final String mimeType = sample['type']?.toString() ?? '';
+    final bool isImage = mimeType.startsWith('image/');
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.55),
+      builder: (ctx) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 32,
+            vertical: 32,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          clipBehavior: Clip.antiAlias,
+          backgroundColor: Colors.white,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 900,
+              maxHeight: 700,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildPreviewHeader(ctx, title),
+                Expanded(child: _buildPreviewBody(url: url, isImage: isImage)),
+                _buildPreviewFooter(ctx),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPreviewHeader(BuildContext ctx, String title) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF4FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.description_rounded,
+              color: ColorConstants.mainCorlor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E293B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'detail.doc.preview_subtitle'.tr,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[500],
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            icon: const Icon(Icons.close_rounded, size: 24),
+            color: const Color(0xFF64748B),
+            tooltip: 'detail.doc.preview_close'.tr,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreviewBody({required String url, required bool isImage}) {
+    return Container(
+      color: const Color(0xFFF1F5F9),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      child: Center(
+        child: isImage
+            ? InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  url,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                  errorBuilder: (_, __, ___) => _previewError(),
+                ),
+              )
+            : _previewError(noInline: true),
+      ),
+    );
+  }
+
+  Widget _previewError({bool noInline = false}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          noInline
+              ? Icons.insert_drive_file_rounded
+              : Icons.broken_image_rounded,
+          size: 72,
+          color: Colors.grey[400],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          noInline
+              ? 'detail.doc.preview_no_inline'.tr
+              : 'detail.doc.preview_none'.tr,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreviewFooter(BuildContext ctx) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '1 ${'detail.doc.preview_files_one'.tr}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: Colors.grey[500],
+              letterSpacing: 1.2,
+            ),
+          ),
+          const Spacer(),
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFEC4899),
+              side: const BorderSide(color: Color(0xFFFCE7F3), width: 1.5),
+              backgroundColor: const Color(0xFFFDF2F8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              'detail.doc.preview_close'.tr,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -807,9 +1045,9 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
               }
             },
             icon: const Icon(Icons.touch_app_rounded, size: 28),
-            label: const Text(
-              'ກົດບັດຄິວ',
-              style: TextStyle(
+            label: Text(
+              'detail.cta.get_ticket'.tr,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -823,6 +1061,34 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
               ),
               elevation: 4,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DocPreviewEyeButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _DocPreviewEyeButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF4FF),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.remove_red_eye_rounded,
+            color: ColorConstants.mainCorlor,
+            size: 20,
           ),
         ),
       ),

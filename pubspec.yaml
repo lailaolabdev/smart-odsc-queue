@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.2+4
 
 environment:
   sdk: ^3.11.1
@@ -29,6 +29,8 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
@@ -95,6 +97,18 @@ dependencies:
   image: ^4.8.0
   barcode_widget: ^2.0.4
 
+  # Reads installed app's versionCode/versionName at runtime. Used by the
+  # force-update gate to compare against backend's minVersionCode.
+  package_info_plus: ^8.1.0
+
+  # In-app APK download + install for the force-update flow. Streams
+  # download progress events so the kiosk operator sees a percentage
+  # without ever leaving the app for Chrome. The final install step
+  # still pops Android's system "Install?" dialog — that confirmation
+  # is enforced by Android for any app that isn't device-owner.
+  ota_update: ^7.1.0
+  mobile_scanner: ^7.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -129,6 +143,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/loading/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

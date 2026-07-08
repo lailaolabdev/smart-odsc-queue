@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 
+/// Thermal-printable ticket. Labels follow the user's current locale; the
+/// queue NUMBER itself is left as-is (it's a code, not text).
+///
+/// The widget is captured into an image via `screenshot.captureFromWidget`
+/// off-screen, so we read translations via `.tr` (which reads Get's
+/// statically-held locale, not BuildContext localizations).
 class PrintableTicket extends StatelessWidget {
   final String queueNumber;
   final String serviceName;
   final String? barCodeNumber;
   final String? qrCodeData;
+  final String? ethnicity;
 
   const PrintableTicket({
     super.key,
@@ -13,7 +21,26 @@ class PrintableTicket extends StatelessWidget {
     required this.serviceName,
     this.barCodeNumber,
     this.qrCodeData,
+    this.ethnicity,
   });
+
+  /// Maps the canonical enum value (LAO / KHMU / HMONG / OTHER) to a
+  /// printable label using the *current* locale.
+  String _ethnicityLabel(String code) {
+    final isLao = (Get.locale?.languageCode ?? 'lo') == 'lo';
+    switch (code) {
+      case 'LAO':
+        return isLao ? 'ລາວ' : 'Lao';
+      case 'KHMU':
+        return isLao ? 'ຂະມຸ' : 'Khmu';
+      case 'HMONG':
+        return isLao ? 'ມົ້ງ' : 'Hmong';
+      case 'OTHER':
+        return isLao ? 'ອື່ນໆ' : 'Other';
+      default:
+        return code;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,17 +77,20 @@ class PrintableTicket extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Smart ODSC",
-                        style: TextStyle(
+                      Text(
+                        'ticket.header_title'.tr,
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-                      const Text(
-                        "ບໍລິການປະຕູດຽວຂອງລັດຖະບານ",
-                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      Text(
+                        'ticket.header_subtitle'.tr,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
                       ),
                     ],
                   ),
@@ -100,9 +130,12 @@ class PrintableTicket extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "ເລກຄິວຂອງທ່ານ",
-                        style: TextStyle(fontSize: 20, color: Colors.black),
+                      Text(
+                        'ticket.queue_number_label'.tr,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
                       ),
                       Text(
                         queueNumber,
@@ -123,9 +156,12 @@ class PrintableTicket extends StatelessWidget {
                     flex: 2,
                     child: Column(
                       children: [
-                        const Text(
-                          "Scan to Track",
-                          style: TextStyle(fontSize: 12, color: Colors.black),
+                        Text(
+                          'ticket.scan_to_track'.tr,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Container(
@@ -165,13 +201,35 @@ class PrintableTicket extends StatelessWidget {
               ),
             ),
 
+            // Ethnicity row (only when value provided)
+            if (ethnicity != null && ethnicity!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "${'ticket.ethnicity'.tr}: ",
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                  Text(
+                    _ethnicityLabel(ethnicity!),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             const SizedBox(height: 25),
 
             // Footer
-            const Center(
+            Center(
               child: Text(
-                "ກະລຸນາລໍຖ້າການຮຽກຄິວ",
-                style: TextStyle(
+                'ticket.please_wait'.tr,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,

@@ -25,8 +25,4 @@ class ProfileController extends GetxController {
     storage.remove('user');
     Get.offAllNamed('/login');
   }
-
-  void goToPrinterSettings() {
-    Get.toNamed('/printer');
-  }
 }

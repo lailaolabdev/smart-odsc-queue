@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:smart_odsc_queue/app/shared/constants/app_constants.dart';
 import '../controllers/login_controller.dart';
 
@@ -24,18 +25,18 @@ class LoginView extends GetView<LoginController> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'ຍິນດີຕ້ອນຮັບ',
-                        style: TextStyle(
+                      Text(
+                        'admin.login.welcome'.tr,
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: ColorConstants.mainCorlor,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const Text(
-                        'ເຂົ້າສູ່ລະບົບເພື່ອຈັດການຄິວ',
-                        style: TextStyle(
+                      Text(
+                        'admin.login.subtitle'.tr,
+                        style: const TextStyle(
                           fontSize: 16,
                           color: ColorConstants.grey,
                         ),
@@ -44,10 +45,10 @@ class LoginView extends GetView<LoginController> {
                       const SizedBox(height: 48),
                       TextField(
                         controller: controller.usernameController,
-                        decoration: const InputDecoration(
-                          labelText: 'ຊື່ຜູ້ໃຊ້',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person_outline),
+                        decoration: InputDecoration(
+                          labelText: 'admin.login.username'.tr,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -56,7 +57,7 @@ class LoginView extends GetView<LoginController> {
                           controller: controller.passwordController,
                           obscureText: controller.obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'ລະຫັດຜ່ານ',
+                            labelText: 'admin.login.password'.tr,
                             border: const OutlineInputBorder(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
@@ -82,15 +83,17 @@ class LoginView extends GetView<LoginController> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            'ເຂົ້າສູ່ລະບົບ',
-                            style: TextStyle(
+                          child: Text(
+                            'admin.login.submit'.tr,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      const _AppVersionLabel(),
                     ],
                   ),
                 ),
@@ -117,9 +120,9 @@ class LoginView extends GetView<LoginController> {
                       children: [
                         Image.asset('assets/images/logo.png', height: 150),
                         const SizedBox(height: 24),
-                        const Text(
-                          'ລະບົບ ການຈັດການຄິວ',
-                          style: TextStyle(
+                        Text(
+                          'admin.login.brand.title'.tr,
+                          style: const TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -127,9 +130,12 @@ class LoginView extends GetView<LoginController> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'ກະຊວງ ພາຍໃນ',
-                          style: TextStyle(fontSize: 18, color: Colors.white70),
+                        Text(
+                          'admin.login.brand.subtitle'.tr,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.white70,
+                          ),
                         ),
                       ],
                     ),
@@ -139,6 +145,32 @@ class LoginView extends GetView<LoginController> {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Small "v1.0.0 (1)" label rendered at the bottom of the login form.
+/// Read once via PackageInfo — cached by the plugin after the first call,
+/// so the FutureBuilder reflows are negligible.
+class _AppVersionLabel extends StatelessWidget {
+  const _AppVersionLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox(height: 16);
+        final info = snapshot.data!;
+        return Text(
+          'v${info.version} (${info.buildNumber})',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade500,
+          ),
+        );
+      },
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:get/get.dart';
@@ -17,7 +18,11 @@ class PrinterService extends GetxService {
   void onInit() {
     super.onInit();
     _loadSelectedPrinter();
-    _checkConnectionStatus();
+    // Fire-and-forget so a slow/failed Bluetooth handshake never
+    // blocks app startup. _tryAutoReconnect swallows all errors —
+    // printer may be off, out of range, or BT permission may still
+    // be pending. Reconnect is retried lazily before each print.
+    unawaited(_tryAutoReconnect());
   }
 
   Future<void> _loadSelectedPrinter() async {
@@ -30,8 +35,36 @@ class PrinterService extends GetxService {
     }
   }
 
-  Future<void> _checkConnectionStatus() async {
-    isConnected.value = await bluetooth.isConnected ?? false;
+  /// Attempt to silently reconnect to the previously paired printer.
+  /// Safe to call repeatedly; safe to call when [selectedDevice] is
+  /// null (no-op). All exceptions are swallowed — the caller decides
+  /// what to do if [isConnected] is still false afterwards.
+  Future<void> _tryAutoReconnect() async {
+    final device = selectedDevice.value;
+    if (device == null) {
+      isConnected.value = false;
+      return;
+    }
+    try {
+      final btConnected = await bluetooth.isConnected ?? false;
+      if (btConnected) {
+        final targetConnected =
+            await bluetooth.isDeviceConnected(device) ?? false;
+        if (targetConnected) {
+          isConnected.value = true;
+          device.connected = true;
+          return;
+        }
+        // Connected to a different device — release it before we
+        // attempt the saved one.
+        await bluetooth.disconnect();
+      }
+      await bluetooth.connect(device);
+      isConnected.value = true;
+      device.connected = true;
+    } catch (_) {
+      isConnected.value = false;
+    }
   }
 
   Future<List<BluetoothDevice>> getPairedDevices() async {
@@ -99,6 +132,13 @@ class PrinterService extends GetxService {
   }
 
   Future<void> printLaoTextAsImage(Uint8List imageBytes) async {
+    // Lazy reconnect: if startup auto-connect failed (printer was off
+    // / out of range), give it one more chance now that the user has
+    // actually reached the print step. Still silent on failure.
+    if (!(await bluetooth.isConnected ?? false) &&
+        selectedDevice.value != null) {
+      await _tryAutoReconnect();
+    }
     if (await bluetooth.isConnected ?? false) {
       // 1. แปลงไฟล์ภาพให้เป็น Object Image ของภาษา Dart
       final img.Image? oriImage = img.decodeImage(imageBytes);

@@ -1,0 +1,19 @@
+# Release signing config — copy this file to `key.properties` (no
+# `.example` suffix) and fill in the real values. `key.properties`
+# and `*.jks` / `*.keystore` are gitignored.
+#
+# Generate the keystore (one-time, store securely — losing it means
+# you can never publish an upgrade to the same package ID again):
+#
+#   keytool -genkey -v \
+#     -keystore odsc-release.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 \
+#     -alias odsc
+#
+# Then move odsc-release.jks into the project's `android/` folder
+# (sibling of this file), and reference its name in storeFile below.
+
+storeFile=odsc-release.jks
+storePassword=CHANGE_ME
+keyAlias=odsc
+keyPassword=CHANGE_ME
