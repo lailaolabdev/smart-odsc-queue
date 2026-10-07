@@ -13,11 +13,11 @@ const Map<String, String> kioskLo = {
   'step.age.title': 'ອາຍຸຂອງທ່ານ',
   'step.age.subtitle': 'ກະລຸນາເລືອກຊ່ວງອາຍຸຂອງທ່ານ',
 
-  'step.disability.title': 'ທ່ານມີຄວາມພິການບໍ່?',
-  'step.disability.no': 'ບໍ່ແມ່ນ (ຂ້ອຍບໍ່ພິການ)',
-  'step.disability.yes': 'ແມ່ນ, ຂ້ອຍມີຄວາມພິການ (ຕ້ອງການຄວາມຊ່ວຍເຫຼືອ)',
+  'step.disability.title': 'ຄວາມພິການຂອງທ່ານ',
+  'step.disability.no': 'ບໍ່ພິການ',
+  'step.disability.yes': 'ພິການ',
 
-  'step.purpose.title': 'ຈຸດປະສົງ',
+  'step.purpose.title': 'ພົວພັນເລື່ອງ',
   'step.purpose.subtitle': 'ກະລຸນາເລືອກຈຸດປະສົງການມາໃນຄັ້ງນີ້',
 
   'step.service_choice.title': 'ເລືອກບໍລິການ',
@@ -43,11 +43,12 @@ const Map<String, String> kioskLo = {
   'step.print_choice.subtitle': 'ກະລຸນາເລືອກວິທີຮັບບັດຄິວຂອງທ່ານ',
   'step.print_choice.print': 'ພິມບັດຄິວ',
   'step.print_choice.photo': 'ຖ່າຍຮູບ QR',
+  'step.print_choice.paper_out_note': 'ໝາຍເຫດ: ຖ້າເຈ້ຍໝົດ ໃຫ້ຖ່າຍຮູບເອົາ',
 
   // Gender options
   'gender.male': 'ຊາຍ',
   'gender.female': 'ຍິງ',
-  'gender.other': 'ອື່ນໆ',
+  'gender.other': 'ບໍ່ລະບຸ',
 
   // Ethnicity options
   'ethnicity.lao': 'ລາວ',
@@ -73,9 +74,9 @@ const Map<String, String> kioskLo = {
   'result.subtitle': 'ກະລຸນາຮັບບັດຄິວຂອງທ່ານ',
   'result.subtitle.photo': 'ກະລຸນາຖ່າຍຮູບ ຫຼື ສະແກນ QR ໂຄດນີ້',
   'result.your_ticket': 'ບັດຄິວຂອງທ່ານ',
-  'result.scan_to_track': 'ສະແກນເພື່ອຕິດຕາມຄິວ',
+  'result.scan_to_track': 'ສະແກນເພື່ອປ້ອນຂໍ້ມູນລ່ວງໜ້າເພື່ອຄວາມໄວ',
   'result.scan_to_track_en': '(Scan to Track Status)',
-  'result.back_to_home': 'ກັບຄືນຫາໜ້າຫຼັກ',
+  'result.back_to_home': 'ບັດຄິວຕໍ່ໄປ',
   'result.auto_return': 'ລະບົບຈະກັບຄືນສູ່ໜ້າຫຼັກອັດຕະໂນມັດພາຍໃນ',
   'result.seconds': 'ວິນາທີ',
 
@@ -128,10 +129,12 @@ const Map<String, String> kioskEn = {
   'step.print_choice.subtitle': 'How would you like to receive your queue?',
   'step.print_choice.print': 'Print ticket',
   'step.print_choice.photo': 'Take photo of QR',
+  'step.print_choice.paper_out_note':
+      'Note: If the paper runs out, please take a photo instead',
 
   'gender.male': 'Male',
   'gender.female': 'Female',
-  'gender.other': 'Other',
+  'gender.other': 'Not specified',
 
   'ethnicity.lao': 'Lao',
   'ethnicity.khmu': 'Khmu',
@@ -153,9 +156,9 @@ const Map<String, String> kioskEn = {
   'result.subtitle': 'Please collect your queue ticket',
   'result.subtitle.photo': 'Please take a photo or scan this QR code',
   'result.your_ticket': 'Your queue ticket',
-  'result.scan_to_track': 'Scan to track your queue',
+  'result.scan_to_track': 'Scan to pre-fill your info for faster service',
   'result.scan_to_track_en': '(Scan to Track Status)',
-  'result.back_to_home': 'Back to Home',
+  'result.back_to_home': 'Next Ticket',
   'result.auto_return': 'Automatically returning to home screen in',
   'result.seconds': 'seconds',
 

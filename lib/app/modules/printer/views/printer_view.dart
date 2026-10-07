@@ -14,9 +14,7 @@ class PrinterView extends GetView<PrinterController> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('ອອກຈາກລະບົບ'),
         content: const Text('ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ບໍ?'),
         actions: [
@@ -66,7 +64,10 @@ class PrinterView extends GetView<PrinterController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ຕັ້ງຄ່າເຄື່ອງພິມ'),
+        title: const Text(
+          'ຕັ້ງຄ່າເຄື່ອງພິມ',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: ColorConstants.mainCorlor,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -113,7 +114,7 @@ class PrinterView extends GetView<PrinterController> {
                               ? 'ກຳລັງໃຊ້: ${controller.selectedDevice?.name ?? "Unknown"}'
                               : 'ຍັງບໍ່ໄດ້ເຊື່ອມເຄື່ອງພິມ',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -129,6 +130,7 @@ class PrinterView extends GetView<PrinterController> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
+                        textStyle: const TextStyle(fontSize: 18),
                       ),
                     ),
                   ],
@@ -153,14 +155,21 @@ class PrinterView extends GetView<PrinterController> {
                         color: Colors.grey,
                       ),
                       const SizedBox(height: 16),
-                      const Text('ບໍ່ພົບອຸປະກອນ Bluetooth ທີ່ pair ໄວ້'),
+                      const Text(
+                        'ບໍ່ພົບອຸປະກອນ Bluetooth ທີ່ pair ໄວ້',
+                        style: TextStyle(fontSize: 18),
+                      ),
                       const SizedBox(height: 8),
                       const Text(
                         'ກະລຸນາ pair ເຄື່ອງພິມໃນ Bluetooth settings ກ່ອນ',
+                        style: TextStyle(fontSize: 18),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: controller.loadPairedPrinters,
+                        style: ElevatedButton.styleFrom(
+                          textStyle: const TextStyle(fontSize: 18),
+                        ),
                         child: const Text('ໂຫຼດອີກຄັ້ງ'),
                       ),
                     ],
@@ -184,17 +193,32 @@ class PrinterView extends GetView<PrinterController> {
                       Icons.print,
                       color: ColorConstants.mainCorlor,
                     ),
-                    title: Text(device.name ?? 'Unknown Device'),
-                    subtitle: Text(device.address ?? ''),
+                    title: Text(
+                      device.name ?? 'Unknown Device',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      device.address ?? '',
+                      style: const TextStyle(fontSize: 15),
+                    ),
                     trailing: isThisConnected
                         ? const Chip(
-                            label: Text('ເຊື່ອມຢູ່'),
+                            label: Text(
+                              'ເຊື່ອມຢູ່',
+                              style: TextStyle(fontSize: 16),
+                            ),
                             backgroundColor: Colors.green,
                             labelStyle: TextStyle(color: Colors.white),
                           )
                         : ElevatedButton(
                             onPressed: () =>
                                 controller.connectToPrinter(device),
+                            style: ElevatedButton.styleFrom(
+                              textStyle: const TextStyle(fontSize: 18),
+                            ),
                             child: const Text('ເລືອກໃຊ້'),
                           ),
                   );

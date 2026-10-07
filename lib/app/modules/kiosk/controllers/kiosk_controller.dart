@@ -58,12 +58,16 @@ class KioskController extends GetxController {
       showFeedbackDebugPanel.value = !showFeedbackDebugPanel.value;
       feedbackTitleTapCount.value = 0;
       Get.snackbar(
-        showFeedbackDebugPanel.value ? 'Debug Panel Enabled' : 'Debug Panel Disabled',
-        showFeedbackDebugPanel.value 
-            ? 'Feedback debug tools are now visible on the right.' 
+        showFeedbackDebugPanel.value
+            ? 'Debug Panel Enabled'
+            : 'Debug Panel Disabled',
+        showFeedbackDebugPanel.value
+            ? 'Feedback debug tools are now visible on the right.'
             : 'Feedback debug tools have been hidden.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: showFeedbackDebugPanel.value ? const Color(0xFFF47939) : const Color(0xFF3554A1),
+        backgroundColor: showFeedbackDebugPanel.value
+            ? const Color(0xFFF47939)
+            : const Color(0xFF3554A1),
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
@@ -72,16 +76,26 @@ class KioskController extends GetxController {
 
   Future<void> goToFeedbackStep2() async {
     final refNumber = feedbackReferenceController.text.trim();
-    print('🔍 [FEEDBACK_LOOKUP] Initiating lookup for reference number: $refNumber');
-    AppLogger.info('🔍 [FEEDBACK_LOOKUP] Initiating lookup for reference number: $refNumber');
+    print(
+      '🔍 [FEEDBACK_LOOKUP] Initiating lookup for reference number: $refNumber',
+    );
+    AppLogger.info(
+      '🔍 [FEEDBACK_LOOKUP] Initiating lookup for reference number: $refNumber',
+    );
     if (refNumber.length != 8) {
-      print('⚠️ [FEEDBACK_LOOKUP] Aborted: Reference number must be exactly 8 digits.');
-      AppLogger.warning('⚠️ [FEEDBACK_LOOKUP] Aborted: Reference number must be exactly 8 digits.');
+      print(
+        '⚠️ [FEEDBACK_LOOKUP] Aborted: Reference number must be exactly 8 digits.',
+      );
+      AppLogger.warning(
+        '⚠️ [FEEDBACK_LOOKUP] Aborted: Reference number must be exactly 8 digits.',
+      );
       return;
     }
     if (isLookingUpReference.value) {
       print('⚠️ [FEEDBACK_LOOKUP] Aborted: Lookup already in progress.');
-      AppLogger.warning('⚠️ [FEEDBACK_LOOKUP] Aborted: Lookup already in progress.');
+      AppLogger.warning(
+        '⚠️ [FEEDBACK_LOOKUP] Aborted: Lookup already in progress.',
+      );
       return;
     }
 
@@ -96,11 +110,16 @@ class KioskController extends GetxController {
     FocusManager.instance.primaryFocus?.unfocus();
 
     isLookingUpReference.value = true;
-    lastFeedbackRequest.value = 'GET ${ApiEndpoints.applications}?search=$refNumber';
+    lastFeedbackRequest.value =
+        'GET ${ApiEndpoints.applications}?search=$refNumber';
     lastFeedbackResponse.value = 'Loading...';
     try {
-      print('🌐 [FEEDBACK_LOOKUP] Sending GET request to ${ApiEndpoints.applications} search=$refNumber');
-      AppLogger.info('🌐 [FEEDBACK_LOOKUP] Sending GET request to ${ApiEndpoints.applications} search=$refNumber');
+      print(
+        '🌐 [FEEDBACK_LOOKUP] Sending GET request to ${ApiEndpoints.applications} search=$refNumber',
+      );
+      AppLogger.info(
+        '🌐 [FEEDBACK_LOOKUP] Sending GET request to ${ApiEndpoints.applications} search=$refNumber',
+      );
       final response = await api.get(
         ApiEndpoints.applications,
         queryParameters: {'search': refNumber},
@@ -108,7 +127,8 @@ class KioskController extends GetxController {
 
       print('📥 [FEEDBACK_LOOKUP] Raw Response received: $response');
       AppLogger.info('📥 [FEEDBACK_LOOKUP] Raw Response received: $response');
-      lastFeedbackResponse.value = 'Status: 200 OK\nBody:\n${response.toString()}';
+      lastFeedbackResponse.value =
+          'Status: 200 OK\nBody:\n${response.toString()}';
 
       // smart-odsc-core returns { status, message, data: [...applications] }.
       // listApplicationsService maps each row to include `referenceNumber`,
@@ -117,8 +137,12 @@ class KioskController extends GetxController {
           ? response['data'] as List<dynamic>
           : const <dynamic>[];
 
-      print('📊 [FEEDBACK_LOOKUP] Total applications returned from search: ${rows.length}');
-      AppLogger.info('📊 [FEEDBACK_LOOKUP] Total applications returned from search: ${rows.length}');
+      print(
+        '📊 [FEEDBACK_LOOKUP] Total applications returned from search: ${rows.length}',
+      );
+      AppLogger.info(
+        '📊 [FEEDBACK_LOOKUP] Total applications returned from search: ${rows.length}',
+      );
 
       final match = rows.firstWhere(
         (a) => a is Map && a['referenceNumber']?.toString() == refNumber,
@@ -126,9 +150,14 @@ class KioskController extends GetxController {
       );
 
       if (match == null) {
-        print('❌ [FEEDBACK_LOOKUP] No exact reference match found for: $refNumber in returned list.');
-        AppLogger.warning('❌ [FEEDBACK_LOOKUP] No exact reference match found for: $refNumber in returned list.');
-        lastFeedbackResponse.value = 'Status: 200 OK (But Reference not found in list)\nBody:\n${response.toString()}';
+        print(
+          '❌ [FEEDBACK_LOOKUP] No exact reference match found for: $refNumber in returned list.',
+        );
+        AppLogger.warning(
+          '❌ [FEEDBACK_LOOKUP] No exact reference match found for: $refNumber in returned list.',
+        );
+        lastFeedbackResponse.value =
+            'Status: 200 OK (But Reference not found in list)\nBody:\n${response.toString()}';
         CustomDialog.showError(
           title: 'common.error'.tr,
           message: 'feedback.error.reference_not_found'.tr,
@@ -139,20 +168,23 @@ class KioskController extends GetxController {
       print('✅ [FEEDBACK_LOOKUP] Found exact match: $match');
       AppLogger.info('✅ [FEEDBACK_LOOKUP] Found exact match: $match');
       feedbackApplication.value = Map<String, dynamic>.from(match as Map);
-      
+
       print('➡️ [FEEDBACK_LOOKUP] Transitioning from Step 1 to Step 2');
-      AppLogger.info('➡️ [FEEDBACK_LOOKUP] Transitioning from Step 1 to Step 2');
+      AppLogger.info(
+        '➡️ [FEEDBACK_LOOKUP] Transitioning from Step 1 to Step 2',
+      );
       feedbackStep.value = 2;
     } catch (e) {
       print('💥 [FEEDBACK_LOOKUP] Exception occurred: $e');
       AppLogger.error('Feedback reference lookup error: $e');
       if (e is ApiException) {
         print('💥 [FEEDBACK_LOOKUP] ApiException Response: ${e.response}');
-        lastFeedbackResponse.value = 'ApiException Code: ${e.statusCode}\nResponse:\n${e.response}\nMessage: ${e.message}';
+        lastFeedbackResponse.value =
+            'ApiException Code: ${e.statusCode}\nResponse:\n${e.response}\nMessage: ${e.message}';
       } else {
         lastFeedbackResponse.value = 'Error:\n$e';
       }
-      
+
       String errMsg = 'feedback.error.lookup_failed'.tr;
       if (showFeedbackDebugPanel.value) {
         errMsg += '\n\nDebug Info:\n$e';
@@ -160,11 +192,8 @@ class KioskController extends GetxController {
           errMsg += '\nResponse: ${e.response}';
         }
       }
-      
-      CustomDialog.showError(
-        title: 'common.error'.tr,
-        message: errMsg,
-      );
+
+      CustomDialog.showError(title: 'common.error'.tr, message: errMsg);
     } finally {
       // 2) No modal hideLoading() to call — the Search button shows an
       //    inline spinner driven by isLookingUpReference, which means
@@ -199,6 +228,27 @@ class KioskController extends GetxController {
     }
   }
 
+  // Logo tap → printer setup. Gated behind 3 quick taps (within 2s) so a
+  // curious citizen doesn't land on the Bluetooth pairing screen from a
+  // single accidental tap on the always-visible top-right logo, while
+  // staff can still reach it without the hidden corner gesture.
+  final RxInt logoTapCount = 0.obs;
+  Timer? _logoTapTimer;
+
+  void handleLogoTap() {
+    logoTapCount.value++;
+    _logoTapTimer?.cancel();
+
+    if (logoTapCount.value >= 3) {
+      logoTapCount.value = 0;
+      Get.toNamed('/printer');
+    } else {
+      _logoTapTimer = Timer(const Duration(seconds: 2), () {
+        logoTapCount.value = 0;
+      });
+    }
+  }
+
   // Booking Data
   final RxString gender = "".obs;
   final RxString ethnicity = "".obs;
@@ -220,6 +270,12 @@ class KioskController extends GetxController {
   final RxList<dynamic> services = <dynamic>[].obs;
   final RxBool isLoading = false.obs;
 
+  // Service types (ປະເພດບໍລິການ) shown on the purpose step — admin-curated,
+  // filtered to the types this center offers. Tapping one issues a ticket
+  // straight away (general ticket, no service pick).
+  final RxList<dynamic> serviceTypes = <dynamic>[].obs;
+  final RxBool isLoadingTypes = false.obs;
+
   // --- Pagination state for the services grid ---
   //
   // Server-side pagination via GET /services?page=&limit=&search=
@@ -228,7 +284,7 @@ class KioskController extends GetxController {
   // the current page's rows; `totalItems` is the backend total used to
   // compute totalPages. We remember the active search so paging next/prev
   // preserves the filter.
-  static const int servicesPageSize = 6;
+  static const int servicesPageSize = 15;
   final RxInt currentPage = 1.obs;
   final RxInt totalItems = 0.obs;
   final RxString currentQuery = "".obs;
@@ -275,8 +331,12 @@ class KioskController extends GetxController {
 
   @override
   void onInit() {
-    print('🚀 [KIOSK_BOOT] KioskController onInit successfully executed. Ready for actions.');
-    AppLogger.info('🚀 [KIOSK_BOOT] KioskController onInit successfully executed. Ready for actions.');
+    print(
+      '🚀 [KIOSK_BOOT] KioskController onInit successfully executed. Ready for actions.',
+    );
+    AppLogger.info(
+      '🚀 [KIOSK_BOOT] KioskController onInit successfully executed. Ready for actions.',
+    );
 
     ever(currentStep, (step) {
       print('🔄 [KIOSK_FLOW] currentStep transitioned to: $step');
@@ -287,21 +347,32 @@ class KioskController extends GetxController {
     feedbackCommentController = TextEditingController();
     feedbackReferenceController = TextEditingController();
     feedbackReferenceController.addListener(() {
-      feedbackReferenceLength.value =
-          feedbackReferenceController.text.length;
+      feedbackReferenceLength.value = feedbackReferenceController.text.length;
     });
     super.onInit();
-    
+
     // Initialize serviceCenterId from storage if available
     final userData = storage.read('user');
+    print('🏢 [SC_ID] stored "user" present: ${userData != null}');
     if (userData != null) {
       final user = UserModel.fromJson(userData);
       final profile = user.officerProfile;
-      final scId = profile is Map ? _stringValue(profile['serviceCenterId']) : null;
+      print('🏢 [SC_ID] officerProfile: $profile');
+      final scId = profile is Map
+          ? _stringValue(profile['serviceCenterId'])
+          : null;
+      print('🏢 [SC_ID] resolved serviceCenterId: $scId');
       if (scId != null) serviceCenterId.value = scId;
     }
-    
+    print(
+      '🏢 [SC_ID] final serviceCenterId.value = "${serviceCenterId.value}"',
+    );
+    AppLogger.info(
+      '🏢 [SC_ID] final serviceCenterId.value = "${serviceCenterId.value}"',
+    );
+
     fetchServices();
+    fetchServiceTypes();
   }
 
   void onSearch(String query) {
@@ -329,25 +400,121 @@ class KioskController extends GetxController {
     if (services.isNotEmpty) return;
 
     isLoading.value = true;
+    print(
+      '📋 [SERVICES_FETCH] start, serviceCenterId="${serviceCenterId.value}", baseUrl="${ApiEndpoints.baseUrl}"',
+    );
     try {
+      if (serviceCenterId.value.isNotEmpty) {
+        // Query the master-data service-center details which resolves and
+        // returns the list of active services for this physical center.
+        final url = '${ApiEndpoints.serviceCenter}/${serviceCenterId.value}';
+        print('📋 [SERVICES_FETCH] path A → GET $url');
+        final response = await api.get(url);
+        print('📋 [SERVICES_FETCH] path A response: $response');
+        if (response['data'] != null && response['data']['services'] != null) {
+          final List<dynamic> rawServices =
+              response['data']['services'] as List<dynamic>;
+          print(
+            '📋 [SERVICES_FETCH] path A raw services from center: ${rawServices.length}',
+          );
+          final activeServices = rawServices
+              .where(
+                (s) =>
+                    s is Map &&
+                    s['isActive'] == true &&
+                    s['service'] != null &&
+                    // A service can be generally active but marked
+                    // online-only (centerEnabled: false) — the kiosk is a
+                    // physical channel, so it must not offer that service.
+                    s['service']['centerEnabled'] != false,
+              )
+              .map((s) => s['service'])
+              .toList();
+
+          print(
+            '📋 [SERVICES_FETCH] path A after isActive+centerEnabled filter: ${activeServices.length}',
+          );
+          services.assignAll(activeServices);
+          totalItems.value = services.length;
+          return;
+        }
+        print(
+          '📋 [SERVICES_FETCH] path A had no data/services — falling through to path B',
+        );
+      }
+
+      // Fallback if serviceCenterId is empty or master-data lookup failed
       final Map<String, dynamic> queryParams = {
         'status': true,
+        // Kiosk is a physical channel — exclude online-only services.
+        'centerEnabled': true,
         'limit': 200, // Fetch all active services at once
       };
 
+      print(
+        '📋 [SERVICES_FETCH] path B → GET ${ApiEndpoints.services} params=$queryParams',
+      );
       final response = await api.get(
         ApiEndpoints.services,
         queryParameters: queryParams,
+      );
+      print(
+        '📋 [SERVICES_FETCH] path B response data length: ${(response['data'] as List?)?.length}, pagination: ${response['pagination']}',
       );
       if (response['data'] != null) {
         services.assignAll(response['data']);
         totalItems.value = services.length;
       }
     } catch (e) {
+      print('📋 [SERVICES_FETCH] EXCEPTION: $e');
       AppLogger.error('Error fetching services: $e');
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // Load the service types this center offers (core public endpoint,
+  // filtered by serviceCenterId). Shown as cards on the purpose step.
+  Future<void> fetchServiceTypes() async {
+    print(
+      '🗂️ [SERVICE_TYPES] start, serviceCenterId="${serviceCenterId.value}"',
+    );
+    if (serviceCenterId.value.isEmpty) {
+      print(
+        '🗂️ [SERVICE_TYPES] ABORTED — serviceCenterId is empty, never called the API. '
+        'This is why the purpose step shows no type cards.',
+      );
+      return;
+    }
+    isLoadingTypes.value = true;
+    try {
+      print(
+        '🗂️ [SERVICE_TYPES] GET ${ApiEndpoints.serviceTypesPublic} params={serviceCenterId: ${serviceCenterId.value}}',
+      );
+      final response = await api.get(
+        ApiEndpoints.serviceTypesPublic,
+        queryParameters: {'serviceCenterId': serviceCenterId.value},
+      );
+      print('🗂️ [SERVICE_TYPES] response: $response');
+      if (response['data'] != null) {
+        serviceTypes.assignAll(response['data'] as List<dynamic>);
+      }
+      print('🗂️ [SERVICE_TYPES] resolved count: ${serviceTypes.length}');
+    } catch (e) {
+      print('🗂️ [SERVICE_TYPES] EXCEPTION: $e');
+      AppLogger.error('Error fetching service types: $e');
+    } finally {
+      isLoadingTypes.value = false;
+    }
+  }
+
+  // Purpose step: tapping a type card issues the ticket straight away.
+  // No service is picked → a general ticket, labelled with the type name.
+  // The type id rides along on the queue so the counter knows which type the
+  // citizen chose; without it the officer has to ask all over again.
+  void selectServiceType(String typeId, String typeName) {
+    visitPurpose.value = 'SERVICE';
+    submitBooking('', typeName, serviceTypeId: typeId);
   }
 
   String? _stringValue(dynamic value) {
@@ -413,27 +580,31 @@ class KioskController extends GetxController {
     required dynamic profile,
     required String serviceId,
   }) async {
-    final profileOrganizationId = _organizationIdFromProfile(profile);
+    // A specific service is authoritative about its own organisation. Now
+    // that the catalogue can span several of the account's organisations,
+    // the queue must be filed under the org that owns the *selected
+    // service* — not the account's first org (which would misfile the
+    // ticket for a multi-org account).
+    if (serviceId.isNotEmpty) {
+      final selectedService = _selectedService(serviceId);
+      final serviceOrganizationId = _organizationIdFromService(selectedService);
 
-    if (profileOrganizationId != null) return profileOrganizationId;
+      if (serviceOrganizationId != null) return serviceOrganizationId;
 
-    final selectedService = _selectedService(serviceId);
-    final serviceOrganizationId = _organizationIdFromService(selectedService);
+      try {
+        final response = await api.get('${ApiEndpoints.services}/$serviceId');
+        final detailOrganizationId = _organizationIdFromService(
+          response['data'],
+        );
 
-    if (serviceOrganizationId != null) return serviceOrganizationId;
-
-    if (serviceId.isEmpty) return null;
-
-    try {
-      final response = await api.get('${ApiEndpoints.services}/$serviceId');
-      final detailOrganizationId = _organizationIdFromService(response['data']);
-
-      if (detailOrganizationId != null) return detailOrganizationId;
-    } catch (e) {
-      AppLogger.error('Error resolving service organization: $e');
+        if (detailOrganizationId != null) return detailOrganizationId;
+      } catch (e) {
+        AppLogger.error('Error resolving service organization: $e');
+      }
     }
 
-    return null;
+    // General ticket (no service picked) → fall back to the account's org.
+    return _organizationIdFromProfile(profile);
   }
 
   void nextStep() {
@@ -459,21 +630,10 @@ class KioskController extends GetxController {
           currentStep.value == 11) {
         // If coming back from ticket result, Service Directory, or Feedback, reset to welcome
         resetBooking();
-      } else if (currentStep.value == 12) {
-        // Step 12 is the print/photo choice reached only from Skip on
-        // step 7 — go back to service_choice, not 11.
-        currentStep.value = 7;
       } else {
         currentStep.value--;
       }
     }
-  }
-
-  /// Routes the user to the print/photo choice step. Called when "Skip"
-  /// is tapped on service_choice — they still need to decide whether to
-  /// receive their ticket on paper or by photographing the QR.
-  void goToPrintChoice() {
-    currentStep.value = 12;
   }
 
   void resetBooking() {
@@ -500,9 +660,11 @@ class KioskController extends GetxController {
   }
 
   void startTimer() {
-    // If the user chooses to take a photo of the QR code (skipPrint is true),
-    // give them 60 seconds to scan/take a picture, otherwise 5 seconds for normal paper prints.
-    timeLeft.value = skipPrint.value ? 60 : 5;
+    // Success (ticket-result) screen stays up for 2 minutes before it
+    // auto-resets to the welcome screen — enough time for the citizen to
+    // read the queue number / scan the QR whether they took a photo or a
+    // printed ticket.
+    timeLeft.value = 120;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timeLeft.value > 0) {
@@ -526,7 +688,11 @@ class KioskController extends GetxController {
     }
   }
 
-  Future<void> submitBooking(String serviceId, String serviceName) async {
+  Future<void> submitBooking(
+    String serviceId,
+    String serviceName, {
+    String serviceTypeId = '',
+  }) async {
     isLoading.value = true;
     CustomDialog.showLoading(message: 'booking.issuing'.tr);
 
@@ -579,6 +745,12 @@ class KioskController extends GetxController {
 
       if (serviceId.isNotEmpty) {
         payload["serviceId"] = serviceId;
+      }
+
+      // Only the purpose-step type cards set this — it is what lets the counter
+      // skip the "which type?" question the citizen already answered here.
+      if (serviceTypeId.isNotEmpty) {
+        payload["serviceTypeId"] = serviceTypeId;
       }
 
       final response = await api.post(ApiEndpoints.queues, data: payload);
@@ -647,7 +819,9 @@ class KioskController extends GetxController {
 
   void selectRating(int rating, String label) {
     print('💬 [FEEDBACK] selectRating: rating=$rating, label="$label"');
-    AppLogger.info('💬 [FEEDBACK] selectRating: rating=$rating, label="$label"');
+    AppLogger.info(
+      '💬 [FEEDBACK] selectRating: rating=$rating, label="$label"',
+    );
     feedbackRating.value = rating;
     if (rating > 1) {
       feedbackCommentController.text = label;
@@ -661,14 +835,22 @@ class KioskController extends GetxController {
     print('📤 [FEEDBACK_SUBMIT] submitFeedback called');
     AppLogger.info('📤 [FEEDBACK_SUBMIT] submitFeedback called');
     if (feedbackRating.value == 0) {
-      print('⚠️ [FEEDBACK_SUBMIT] Aborted: Rating value is 0 (No rating selected)');
-      AppLogger.warning('⚠️ [FEEDBACK_SUBMIT] Aborted: Rating value is 0 (No rating selected)');
+      print(
+        '⚠️ [FEEDBACK_SUBMIT] Aborted: Rating value is 0 (No rating selected)',
+      );
+      AppLogger.warning(
+        '⚠️ [FEEDBACK_SUBMIT] Aborted: Rating value is 0 (No rating selected)',
+      );
       return false;
     }
 
     if (feedbackReferenceController.text.length != 8) {
-      print('⚠️ [FEEDBACK_SUBMIT] Aborted: Reference number length is not 8 digits.');
-      AppLogger.warning('⚠️ [FEEDBACK_SUBMIT] Aborted: Reference number length is not 8 digits.');
+      print(
+        '⚠️ [FEEDBACK_SUBMIT] Aborted: Reference number length is not 8 digits.',
+      );
+      AppLogger.warning(
+        '⚠️ [FEEDBACK_SUBMIT] Aborted: Reference number length is not 8 digits.',
+      );
       CustomDialog.showError(
         title: 'common.error'.tr,
         message: 'feedback.error.reference_length'.tr,
@@ -681,7 +863,9 @@ class KioskController extends GetxController {
       final userData = storage.read('user');
       if (userData == null) {
         print('❌ [FEEDBACK_SUBMIT] User data not found in local storage.');
-        AppLogger.error('❌ [FEEDBACK_SUBMIT] User data not found in local storage.');
+        AppLogger.error(
+          '❌ [FEEDBACK_SUBMIT] User data not found in local storage.',
+        );
         CustomDialog.showError(
           title: 'common.error'.tr,
           message: 'booking.error.not_logged_in'.tr,
@@ -714,18 +898,24 @@ class KioskController extends GetxController {
         "description": feedbackCommentController.text,
         "rating": feedbackRating.value,
         "referenceNumber": feedbackReferenceController.text,
-        "serviceCenterId":
-            serviceCenterId.value.isEmpty ? null : serviceCenterId.value,
+        "serviceCenterId": serviceCenterId.value.isEmpty
+            ? null
+            : serviceCenterId.value,
         "userId": user.id.isEmpty ? null : user.id,
         "fullName": feedbackReferenceController.text,
         "type": "QUEUE_APP",
       };
 
-      final apiType = usePublicApiForFeedback.value ? 'Public API (Bypassing Auth Interceptor)' : 'Standard API';
-      lastFeedbackRequest.value = 'POST ${ApiEndpoints.feedback} via $apiType\nPayload:\n${jsonEncode(payload)}';
+      final apiType = usePublicApiForFeedback.value
+          ? 'Public API (Bypassing Auth Interceptor)'
+          : 'Standard API';
+      lastFeedbackRequest.value =
+          'POST ${ApiEndpoints.feedback} via $apiType\nPayload:\n${jsonEncode(payload)}';
       lastFeedbackResponse.value = 'Loading...';
 
-      print('🚀 [FEEDBACK_SUBMIT] Preparing to POST feedback to endpoint: ${ApiEndpoints.feedback} via $apiType');
+      print(
+        '🚀 [FEEDBACK_SUBMIT] Preparing to POST feedback to endpoint: ${ApiEndpoints.feedback} via $apiType',
+      );
       print('📦 [FEEDBACK_SUBMIT] Payload: $payload');
       AppLogger.info('📤 Feedback Payload (about to POST): $payload');
       AppLogger.info('Profile: $profile');
@@ -736,13 +926,14 @@ class KioskController extends GetxController {
       // (handled in the catch below) without kicking staff back to
       // /login. Once backend lifts auth from POST /feedback this just
       // starts succeeding with no further change.
-      final response = usePublicApiForFeedback.value 
+      final response = usePublicApiForFeedback.value
           ? await api.postPublic(ApiEndpoints.feedback, data: payload)
           : await api.post(ApiEndpoints.feedback, data: payload);
-      
+
       print('📥 [FEEDBACK_SUBMIT] Received response from backend: $response');
       AppLogger.info('📥 Feedback Response: $response');
-      lastFeedbackResponse.value = 'Status: Success\nResponse:\n${response.toString()}';
+      lastFeedbackResponse.value =
+          'Status: Success\nResponse:\n${response.toString()}';
 
       if (response['message'] == 'SUCCESS' || response['status'] == true) {
         print('✅ [FEEDBACK_SUBMIT] Feedback submitted successfully!');
@@ -756,8 +947,12 @@ class KioskController extends GetxController {
         isFeedbackSubmitted.value = true;
         return true;
       } else {
-        print('❌ [FEEDBACK_SUBMIT] Submission rejected by backend: message/status mismatch');
-        AppLogger.warning('❌ [FEEDBACK_SUBMIT] Submission rejected by backend: message/status mismatch');
+        print(
+          '❌ [FEEDBACK_SUBMIT] Submission rejected by backend: message/status mismatch',
+        );
+        AppLogger.warning(
+          '❌ [FEEDBACK_SUBMIT] Submission rejected by backend: message/status mismatch',
+        );
         CustomDialog.showError(
           title: 'common.error'.tr,
           message: 'feedback.error.network'.tr,
@@ -770,11 +965,12 @@ class KioskController extends GetxController {
       if (e is ApiException) {
         print('💥 [FEEDBACK_SUBMIT] ApiException response body: ${e.response}');
         AppLogger.error('Feedback Error Response: ${e.response}');
-        lastFeedbackResponse.value = 'ApiException Code: ${e.statusCode}\nResponse:\n${e.response}\nMessage: ${e.message}';
+        lastFeedbackResponse.value =
+            'ApiException Code: ${e.statusCode}\nResponse:\n${e.response}\nMessage: ${e.message}';
       } else {
         lastFeedbackResponse.value = 'Error:\n$e';
       }
-      
+
       String errMsg = ErrorHandler.getMessage(e);
       if (showFeedbackDebugPanel.value) {
         errMsg += '\n\nDebug Info:\n$e';
@@ -782,11 +978,8 @@ class KioskController extends GetxController {
           errMsg += '\nResponse: ${e.response}';
         }
       }
-      
-      CustomDialog.showError(
-        title: 'common.error'.tr,
-        message: errMsg,
-      );
+
+      CustomDialog.showError(title: 'common.error'.tr, message: errMsg);
       return false;
     } finally {
       isSubmittingFeedback.value = false;

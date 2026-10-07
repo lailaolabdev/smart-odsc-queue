@@ -10,7 +10,6 @@ import 'package:smart_odsc_queue/app/shared/widgets/custom_dialog.dart';
 import 'package:smart_odsc_queue/app/shared/widgets/language_switcher.dart';
 import 'package:smart_odsc_queue/app/shared/widgets/loading_indicator.dart';
 import '../controllers/kiosk_controller.dart';
-import 'service_detail_page.dart';
 
 class KioskView extends GetView<KioskController> {
   const KioskView({super.key});
@@ -153,6 +152,44 @@ class KioskView extends GetView<KioskController> {
               }
               return const SizedBox.shrink();
             }),
+
+            // Brand cluster (Top-Right): language toggle with the ODSC logo
+            // on its right. Lives here rather than inside a step so it stays
+            // put across the whole flow — shown on every step except the
+            // ticket-result page (9), which stays a clean confirmation.
+            //
+            // Added last so it paints above the hidden admin tap zone, and
+            // the logo is wrapped in IgnorePointer so taps on it still fall
+            // through to that zone — the logo doubles as the admin target.
+            Obx(() {
+              if (controller.currentStep.value == 9) {
+                return const SizedBox.shrink();
+              }
+              return Positioned(
+                top: 24,
+                right: 24,
+                child: SafeArea(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const LanguageSwitcher(),
+                      const SizedBox(width: 16),
+                      IgnorePointer(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Image.asset(
+                            'assets/images/main-logo.jpg',
+                            width: 64,
+                            height: 64,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -249,7 +286,7 @@ class KioskView extends GetView<KioskController> {
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: compactHeader ? 18 : 22,
+                fontSize: compactHeader ? 22 : 26,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
@@ -264,105 +301,24 @@ class KioskView extends GetView<KioskController> {
   }
 
   Widget _buildWelcomeStep() {
-    // Language switcher floats at top-right OF the welcome step (not the
-    // outer Stack) so it disappears as soon as the user advances past
-    // step 1 — keeping the queue flow itself uncluttered.
-    return Stack(
-      children: [
-        _buildStepContainer(
-          title: 'welcome.title'.tr,
-          subtitle: 'welcome.subtitle'.tr,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildWelcomeButton(
-                label: 'welcome.feedback_button'.tr,
-                icon: Icons.chat_outlined,
-                color: Colors.orange,
-                onTap: () {
-                  controller.currentStep.value = 11;
-                },
-              ),
-              const SizedBox(width: 40),
-              _buildShimmerWelcomeButton(
-                label: 'welcome.queue_button'.tr,
-                icon: Icons.touch_app_rounded,
-                color: ColorConstants.mainCorlor,
-                onTap: controller.nextStep,
-              ),
-              const SizedBox(width: 40),
-              _buildWelcomeButton(
-                label: 'welcome.directory_button'.tr,
-                icon: Icons.grid_view_rounded,
-                color: Colors.blue,
-                onTap: () {
-                  controller.currentStep.value = 10;
-                },
-              ),
-            ],
-          ),
-        ),
-        // Language toggle pinned top-right. Offset 160px from the right
-        // edge so it doesn't sit on top of the 140x140 hidden admin tap
-        // zone in the outer Stack (140 zone width + 20px breathing room).
-        const Positioned(
-          top: 24,
-          right: 160,
-          child: SafeArea(child: LanguageSwitcher()),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWelcomeButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      width: 280,
-      height: 280,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(40),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 80, color: color),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: color.withOpacity(0.9),
-                  letterSpacing: -0.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+    // Logo + language switcher now live in the global top-right cluster
+    // (outer Stack) so they stay put across every step. showLogo: false
+    // keeps the old centered logo from doubling up here.
+    return _buildStepContainer(
+      title: 'welcome.title'.tr,
+      subtitle: 'welcome.subtitle'.tr,
+      showLogo: false,
+      // Queue-ticket is now the ONLY action on the welcome screen
+      // (feedback + service-directory entry points removed per request).
+      // A single centered hero button makes the one thing to do
+      // unmistakable.
+      child: Center(
+        child: _buildShimmerWelcomeButton(
+          label: 'welcome.queue_button'.tr,
+          icon: Icons.touch_app_rounded,
+          color: ColorConstants.mainCorlor,
+          onTap: controller.nextStep,
+          size: 440,
         ),
       ),
     );
@@ -373,14 +329,22 @@ class KioskView extends GetView<KioskController> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    double size = 350,
   }) {
-    return _ShimmerButton(label: label, icon: icon, color: color, onTap: onTap);
+    return _ShimmerButton(
+      label: label,
+      icon: icon,
+      color: color,
+      onTap: onTap,
+      size: size,
+    );
   }
 
   Widget _buildGenderStep() {
     return _buildStepContainer(
       title: 'step.gender.title'.tr,
-      subtitle: 'step.gender.subtitle'.tr,
+      subtitle: '',
+      showLogo: false,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1040),
@@ -392,7 +356,7 @@ class KioskView extends GetView<KioskController> {
             children: [
               _buildChoiceTile(
                 label: 'gender.male'.tr,
-                icon: Icons.male_rounded,
+                icon: Icons.man,
                 accent: const Color(0xFF4A90E2),
                 onTap: () {
                   controller.gender.value = "MALE";
@@ -401,7 +365,7 @@ class KioskView extends GetView<KioskController> {
               ),
               _buildChoiceTile(
                 label: 'gender.female'.tr,
-                icon: Icons.female_rounded,
+                icon: Icons.woman,
                 accent: const Color(0xFFE91E63),
                 onTap: () {
                   controller.gender.value = "FEMALE";
@@ -410,8 +374,8 @@ class KioskView extends GetView<KioskController> {
               ),
               _buildChoiceTile(
                 label: 'gender.other'.tr,
-                icon: Icons.transgender_rounded,
-                accent: const Color(0xFF7E57C2),
+                icon: Icons.person,
+                accent: const Color(0xFF7E8CA8),
                 onTap: () {
                   controller.gender.value = "OTHER";
                   controller.nextStep();
@@ -424,9 +388,9 @@ class KioskView extends GetView<KioskController> {
     );
   }
 
-  // Premium gender card — round accent-gradient badge + slate label
-  // + decorative underline + tap hint. Wrap-driven so 3 fit at 1080px
-  // portrait kiosk and gracefully wrap at narrower test screens.
+  // Premium gender card — round accent-gradient badge + slate label.
+  // Wrap-driven so 3 fit at 1080px portrait kiosk and gracefully wrap
+  // at narrower test screens.
   Widget _buildChoiceTile({
     required String label,
     required IconData icon,
@@ -443,7 +407,9 @@ class KioskView extends GetView<KioskController> {
         highlightColor: accent.withOpacity(0.06),
         child: Ink(
           width: 300,
-          height: 400,
+          // 543 = the age step's block height (3 rows x 157 + 2 x 36 gap),
+          // so every choice step runs the same distance down the page.
+          height: 543,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(28),
@@ -489,25 +455,6 @@ class KioskView extends GetView<KioskController> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 14),
-              Container(
-                width: 56,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'common.tap_to_select'.tr,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: slate.withOpacity(0.55),
-                  letterSpacing: 0.3,
-                ),
-              ),
             ],
           ),
         ),
@@ -525,23 +472,26 @@ class KioskView extends GetView<KioskController> {
 
     return _buildStepContainer(
       title: 'step.ethnicity.title'.tr,
-      subtitle: 'step.ethnicity.subtitle'.tr,
+      subtitle: '',
+      showLogo: false,
       child: SizedBox(
-        width: 800,
+        width: 1040,
         child: GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 3.8,
-            crossAxisSpacing: 30,
-            mainAxisSpacing: 30,
+            // 2 rows x 251.5 + 40 gap = 543, the age step's block height.
+            childAspectRatio: 1.99,
+            crossAxisSpacing: 40,
+            mainAxisSpacing: 40,
           ),
           itemCount: ethnicities.length,
           itemBuilder: (context, index) {
             final item = ethnicities[index];
             return _buildWideButton(
               label: item['label']!,
+              fontSize: 40,
               onTap: () {
                 controller.ethnicity.value = item['value']!;
                 controller.nextStep();
@@ -565,23 +515,25 @@ class KioskView extends GetView<KioskController> {
 
     return _buildStepContainer(
       title: 'step.age.title'.tr,
-      subtitle: 'step.age.subtitle'.tr,
+      subtitle: '',
+      showLogo: false,
       child: SizedBox(
-        width: 800,
+        width: 1040,
         child: GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 3.8,
-            crossAxisSpacing: 30,
-            mainAxisSpacing: 30,
+            childAspectRatio: 3.2,
+            crossAxisSpacing: 36,
+            mainAxisSpacing: 36,
           ),
           itemCount: ages.length,
           itemBuilder: (context, index) {
             final age = ages[index];
             return _buildWideButton(
               label: age['label']!,
+              fontSize: 40,
               onTap: () {
                 controller.ageRange.value = age['value']!;
                 controller.nextStep();
@@ -594,83 +546,224 @@ class KioskView extends GetView<KioskController> {
   }
 
   Widget _buildDisabilityStep() {
+    // White cards with a colored icon badge — matches the gender-step
+    // look (_buildChoiceTile). Colors are chosen to read at a glance:
+    // green = able-bodied/mobile, blue = universal accessibility.
     return _buildStepContainer(
       title: 'step.disability.title'.tr,
       subtitle: '',
-      child: Column(
-        children: [
-          // PROMINENT "NO" BUTTON (Majority case)
-          InkWell(
-            onTap: () {
-              controller.isDisabled.value = false;
-              controller.nextStep();
-            },
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.3),
-                    blurRadius: 30,
-                    offset: const Offset(0, 15),
-                  ),
-                ],
+      showLogo: false,
+      // Cards sit directly under the title (not vertically centred) so
+      // this page balances with the gender / age / ethnicity steps,
+      // which all lay their options out the same way.
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildDisabilitySolidCard(
+              label: 'step.disability.no'.tr,
+              icon: Icons.directions_walk,
+              color: const Color(0xFF2E9E5B),
+              onTap: () {
+                controller.isDisabled.value = false;
+                controller.nextStep();
+              },
+            ),
+            const SizedBox(width: 40),
+            _buildDisabilitySolidCard(
+              label: 'step.disability.yes'.tr,
+              icon: Icons.accessible,
+              color: const Color(0xFF2E5394),
+              onTap: () {
+                controller.isDisabled.value = true;
+                controller.nextStep();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDisabilitySolidCard({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    const Color slate = Color(0xFF455C91);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(28),
+        splashColor: color.withOpacity(0.12),
+        highlightColor: color.withOpacity(0.06),
+        child: Ink(
+          // Fixed width AND height so both cards are identical regardless
+          // of label length. Sized wide/tall enough for the longest label
+          // (the "yes" option is a full sentence) to fit on up to 3 lines
+          // without ellipsis. Content is centred vertically.
+          width: 480,
+          // Matches the age step's block height (see _buildChoiceTile).
+          height: 543,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: slate.withOpacity(0.10), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: slate.withOpacity(0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
               ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 220,
+                  height: 220,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [color.withOpacity(0.85), color],
+                      radius: 0.75,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.35),
+                        blurRadius: 32,
+                        offset: const Offset(0, 16),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, size: 120, color: Colors.white),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w800,
+                    color: slate,
+                    height: 1.25,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ServiceType icons are uploaded to the files bucket, not images/ — same
+  // base admin reads them from in ServiceTypeTable.tsx.
+  static const String _serviceTypeIconBase =
+      'https://storage-console.odsc.gov.la/odsc-public-storage/files';
+
+  // One geometry for every purpose-step card, whether its glyph is a Material
+  // icon or an uploaded PNG.
+  //
+  // Height is derived, not picked: two rows plus the 32 gap must equal the
+  // 543 block every other step occupies (see _optionBar sizing on the age
+  // step), so the grid ends above the step-indicator dots instead of running
+  // under them — 255*2 + 32 = 542. Content needs 24*2 padding + 100 plate
+  // + 16 gap + 2 label lines (~60) = 224, so 255 has room to spare.
+  static const double _purposeCardW = 280;
+  static const double _purposeCardH = 255;
+  static const double _purposeCardGap = 32;
+  static const double _purposeIconPlate = 100;
+  static const double _purposeGlyph = 64;
+
+  /// A purpose-step option. Pass [icon] for a Material glyph or [imageIcon]
+  /// for an uploaded ServiceType icon — both render at the same size inside
+  /// the same tinted plate, so a row of mixed cards stays uniform.
+  Widget _buildPurposeCard({
+    required String label,
+    required VoidCallback onTap,
+    IconData? icon,
+    String? imageIcon,
+    Color color = ColorConstants.mainCorlor,
+  }) {
+    final String iconUrl = imageIcon != null && imageIcon.isNotEmpty
+        ? '$_serviceTypeIconBase/$imageIcon'
+        : '';
+    final Widget fallbackGlyph = Icon(
+      icon ?? Icons.account_balance_rounded,
+      size: _purposeGlyph,
+      color: color,
+    );
+
+    return SizedBox(
+      width: _purposeCardW,
+      height: _purposeCardH,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(32),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 80,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'step.disability.no'.tr,
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Container(
+                    width: _purposeIconPlate,
+                    height: _purposeIconPlate,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(24),
                     ),
+                    child: iconUrl.isEmpty
+                        ? fallbackGlyph
+                        : Image.network(
+                            iconUrl,
+                            width: _purposeGlyph,
+                            height: _purposeGlyph,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => fallbackGlyph,
+                          ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: -0.5,
+                      height: 1.15,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 50),
-          // SUBTLE "YES" OPTION
-          InkWell(
-            onTap: () {
-              controller.isDisabled.value = true;
-              controller.nextStep();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.orange.withOpacity(0.5)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.accessible, color: Colors.orange, size: 30),
-                  const SizedBox(width: 16),
-                  Text(
-                    'step.disability.yes'.tr,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -678,31 +771,67 @@ class KioskView extends GetView<KioskController> {
   Widget _buildPurposeStep() {
     return _buildStepContainer(
       title: 'step.purpose.title'.tr,
-      subtitle: 'step.purpose.subtitle'.tr,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildOptionCard(
+      subtitle: '',
+      showLogo: false,
+      isScrollable: true,
+      child: Obx(() {
+        if (controller.isLoadingTypes.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: ColorConstants.mainCorlor),
+          );
+        }
+
+        final types = controller.serviceTypes;
+
+        // Fixed order: inquiry first (blue), center-curated types in the
+        // middle (their own uploaded icon), skip-step card last (orange).
+        // Every card issues the ticket straight away — no service pick.
+        final cards = <Widget>[
+          _buildPurposeCard(
             label: 'purpose.inquiry'.tr,
             icon: Icons.help_outline,
             color: Colors.blue,
             onTap: () {
               controller.visitPurpose.value = 'INQUIRY';
-              controller.nextStep();
+              controller.submitBooking('', 'purpose.inquiry'.tr);
             },
           ),
-          const SizedBox(width: 40),
-          _buildOptionCard(
-            label: 'purpose.service_usage'.tr,
-            icon: Icons.business_center,
-            color: Colors.green,
+          for (final type in types)
+            _buildPurposeCard(
+              label: (type['name'] ?? '').toString(),
+              imageIcon: type['icon']?.toString(),
+              onTap: () => controller.selectServiceType(
+                (type['id'] ?? '').toString(),
+                (type['name'] ?? '').toString(),
+              ),
+            ),
+          _buildPurposeCard(
+            label: 'step.service_choice.skip'.tr,
+            icon: Icons.skip_next,
+            color: Colors.orange,
             onTap: () {
               controller.visitPurpose.value = 'SERVICE';
-              controller.nextStep();
+              controller.submitBooking(
+                '',
+                'step.service_choice.unspecified'.tr,
+              );
             },
           ),
-        ],
-      ),
+        ];
+
+        // Wrap (not a stretch grid) so every card keeps the same 280px box
+        // whatever the type count is; the list scrolls once it passes two
+        // rows — the skip card usually lands on row 3.
+        return SingleChildScrollView(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
+            spacing: _purposeCardGap,
+            runSpacing: _purposeCardGap,
+            children: cards,
+          ),
+        );
+      }),
     );
   }
 
@@ -735,7 +864,9 @@ class KioskView extends GetView<KioskController> {
                 label: 'step.service_choice.skip'.tr,
                 icon: Icons.skip_next,
                 color: Colors.orange,
-                onTap: controller.goToPrintChoice,
+                // Step 12 = print/photo choice. Navigated to directly because
+                // nextStep() caps at 9; see skipPrint in KioskController.
+                onTap: () => controller.currentStep.value = 12,
               ),
             ],
           ),
@@ -748,33 +879,48 @@ class KioskView extends GetView<KioskController> {
     return _buildStepContainer(
       title: 'step.print_choice.title'.tr,
       subtitle: 'step.print_choice.subtitle'.tr,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildOptionCard(
-            label: 'step.print_choice.print'.tr,
-            icon: Icons.print_rounded,
-            color: ColorConstants.mainCorlor,
-            onTap: () {
-              controller.skipPrint.value = false;
-              controller.submitBooking(
-                "",
-                'step.service_choice.unspecified'.tr,
-              );
-            },
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildOptionCard(
+                label: 'step.print_choice.print'.tr,
+                icon: Icons.print_rounded,
+                color: ColorConstants.mainCorlor,
+                onTap: () {
+                  controller.skipPrint.value = false;
+                  controller.submitBooking(
+                    "",
+                    'step.service_choice.unspecified'.tr,
+                  );
+                },
+              ),
+              const SizedBox(width: 60),
+              _buildOptionCard(
+                label: 'step.print_choice.photo'.tr,
+                icon: Icons.qr_code_2,
+                color: Colors.orange,
+                onTap: () {
+                  controller.skipPrint.value = true;
+                  controller.submitBooking(
+                    "",
+                    'step.service_choice.unspecified'.tr,
+                  );
+                },
+              ),
+            ],
           ),
-          const SizedBox(width: 60),
-          _buildOptionCard(
-            label: 'step.print_choice.photo'.tr,
-            icon: Icons.qr_code_2,
-            color: Colors.orange,
-            onTap: () {
-              controller.skipPrint.value = true;
-              controller.submitBooking(
-                "",
-                'step.service_choice.unspecified'.tr,
-              );
-            },
+          const SizedBox(height: 32),
+          Text(
+            'step.print_choice.paper_out_note'.tr,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.red,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -786,11 +932,11 @@ class KioskView extends GetView<KioskController> {
     //   • title + subtitle CENTERED on the page (true page-center, not
     //     "center of the slot left after the logo")
     //   • logo pinned to the TOP-RIGHT, smaller than before
-    //   • search bar centered, with the search button INSIDE the field
     //
     // A Stack layers a Center'd title block under an Align'd logo on
     // the right — so the title is truly page-centered while the logo
     // floats over the top-right corner without pushing the text.
+    // (Search bar removed per request.)
     return Container(
       padding: const EdgeInsets.fromLTRB(40, 20, 40, 16),
       child: Column(
@@ -844,93 +990,6 @@ class KioskView extends GetView<KioskController> {
             ),
           ),
           const SizedBox(height: 24),
-
-          // SEARCH BAR — centered, search button lives INSIDE the
-          // field as a suffix so there is only one visual unit
-          // labelled "search".
-          Center(
-            child: Container(
-              width: 760,
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: controller.searchController,
-                onSubmitted: controller.onSearch,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1A1A1A),
-                ),
-                decoration: InputDecoration(
-                  hintText: 'step.service.search_hint'.tr,
-                  hintStyle: TextStyle(
-                    fontSize: 19,
-                    color: Colors.grey[400],
-                  ),
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 12),
-                    child: Icon(
-                      Icons.search_rounded,
-                      size: 28,
-                      color: ColorConstants.mainCorlor,
-                    ),
-                  ),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (controller.searchController.text.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded, size: 22),
-                            onPressed: controller.clearSearch,
-                            color: Colors.grey[500],
-                          ),
-                        _SearchActionButton(
-                          onTap: () => controller.onSearch(
-                            controller.searchController.text,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  suffixIconConstraints: const BoxConstraints(
-                    maxHeight: 60,
-                    maxWidth: 220,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(
-                      color: Colors.grey[200]!,
-                      width: 1.5,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(
-                      color: ColorConstants.mainCorlor.withOpacity(0.5),
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
 
           // GRID + PAGINATION
           Expanded(
@@ -1017,13 +1076,26 @@ class KioskView extends GetView<KioskController> {
                             return _buildServiceCard(
                               label: serviceName,
                               icon: service['icon']?.toString(),
-                              onTap: () => Get.to(
-                                () => ServiceDetailPage(
-                                  serviceId: serviceId,
-                                  serviceName: serviceName,
-                                  isViewOnly: isViewOnly,
-                                ),
-                              ),
+                              // Selecting a service books immediately — the
+                              // detail page is skipped per request ("ໄປໜ້າ
+                              // ບັດຄິວເລີຍ ບໍ່ຕ້ອງໄປໜ້າລາຍລະອຽດ").
+                              onTap: () {
+                                if (isViewOnly) {
+                                  // Directory browse → seed the selection and
+                                  // start the booking flow at the gender step
+                                  // (mirrors the old view-only detail CTA).
+                                  controller.selectedServiceId.value =
+                                      serviceId;
+                                  controller.selectedServiceName.value =
+                                      serviceName;
+                                  controller.currentStep.value = 2;
+                                } else {
+                                  controller.submitBooking(
+                                    serviceId,
+                                    serviceName,
+                                  );
+                                }
+                              },
                             );
                           },
                         );
@@ -1171,7 +1243,8 @@ class KioskView extends GetView<KioskController> {
           ? 'result.subtitle.photo'.tr
           : 'result.subtitle'.tr,
       isScrollable: true,
-      child: Center(
+      child: Align(
+        alignment: Alignment.topCenter,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1199,74 +1272,74 @@ class KioskView extends GetView<KioskController> {
                       // LEFT SIDE: Queue Info
                       Expanded(
                         flex: 6,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 60,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'result.your_ticket'.tr,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey,
+                        child: Transform.translate(
+                          offset: const Offset(-3, 0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 60,
                               ),
-                            ),
-                            Obx(
-                              () => Text(
-                                controller.queueNumber.value,
+                              const SizedBox(height: 12),
+                              Text(
+                                'result.your_ticket'.tr,
                                 style: const TextStyle(
-                                  fontSize: 120,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                  height: 1.1,
+                                  fontSize: 24,
+                                  color: Colors.grey,
                                 ),
                               ),
-                            ),
-                            Obx(
-                              () => Text(
-                                controller.selectedServiceName.value,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                              Obx(
+                                () => Text(
+                                  controller.queueNumber.value,
+                                  style: const TextStyle(
+                                    fontSize: 120,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    height: 1.1,
+                                  ),
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                            ),
-                          ],
+                              Obx(
+                                () => Text(
+                                  controller.selectedServiceName.value,
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const VerticalDivider(
-                        thickness: 1.5,
-                        color: Colors.grey,
-                        indent: 20,
-                        endIndent: 20,
+                      Transform.translate(
+                        offset: const Offset(-3, 0),
+                        child: const VerticalDivider(
+                          thickness: 1.5,
+                          color: Colors.grey,
+                          indent: 20,
+                          endIndent: 20,
+                        ),
                       ),
                       // RIGHT SIDE: Tracking Info
                       Expanded(
                         flex: 4,
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
                               'result.scan_to_track'.tr,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                            Text(
-                              'result.scan_to_track_en'.tr,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 12),
                             Obx(
                               () => Container(
                                 padding: const EdgeInsets.all(10),
@@ -1320,15 +1393,15 @@ class KioskView extends GetView<KioskController> {
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   ColorConstants.mainCorlor,
                                 ),
-                                backgroundColor:
-                                    ColorConstants.mainCorlor.withOpacity(0.2),
+                                backgroundColor: ColorConstants.mainCorlor
+                                    .withOpacity(0.2),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Text(
                               '${'result.auto_return'.tr} ${controller.timeLeft.value} ${'result.seconds'.tr}',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: ColorConstants.mainCorlor,
                               ),
@@ -1359,7 +1432,7 @@ class KioskView extends GetView<KioskController> {
                   child: Text(
                     'result.back_to_home'.tr,
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
@@ -1434,6 +1507,7 @@ class KioskView extends GetView<KioskController> {
   Widget _buildWideButton({
     required String label,
     required VoidCallback onTap,
+    double fontSize = 24,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -1461,10 +1535,10 @@ class KioskView extends GetView<KioskController> {
             child: Center(
               child: Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 24,
+                style: TextStyle(
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A1A),
+                  color: const Color(0xFF1A1A1A),
                   height: 1.2,
                 ),
                 textAlign: TextAlign.center,
@@ -1481,7 +1555,7 @@ class KioskView extends GetView<KioskController> {
   Widget _buildFeedbackStep() {
     return Obx(() {
       final bool showDebug = controller.showFeedbackDebugPanel.value;
-      
+
       final Widget mainWizard = Obx(() {
         if (controller.isFeedbackSubmitted.value) {
           return Center(
@@ -1579,14 +1653,8 @@ class KioskView extends GetView<KioskController> {
                 child: mainWizard,
               ),
             ),
-            Container(
-              width: 1,
-              color: Colors.grey.withOpacity(0.3),
-            ),
-            Expanded(
-              flex: 2,
-              child: _buildFeedbackDebugPanel(),
-            ),
+            Container(width: 1, color: Colors.grey.withOpacity(0.3)),
+            Expanded(flex: 2, child: _buildFeedbackDebugPanel()),
           ],
         );
       }
@@ -1901,10 +1969,7 @@ class KioskView extends GetView<KioskController> {
           child: TextField(
             controller: controller.feedbackCommentController,
             maxLines: 3,
-            style: const TextStyle(
-              fontSize: 22,
-              color: Color(0xFF1E293B),
-            ),
+            style: const TextStyle(fontSize: 22, color: Color(0xFF1E293B)),
             decoration: InputDecoration(
               hintText: 'feedback.comment.hint'.tr,
               hintStyle: const TextStyle(
@@ -1990,12 +2055,13 @@ class KioskView extends GetView<KioskController> {
               ),
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white70),
-                onPressed: () => controller.showFeedbackDebugPanel.value = false,
+                onPressed: () =>
+                    controller.showFeedbackDebugPanel.value = false,
               ),
             ],
           ),
           const Divider(color: Colors.white24, height: 24),
-          
+
           // Switch to toggle Public vs Private API
           Obx(() {
             return Container(
@@ -2022,10 +2088,7 @@ class KioskView extends GetView<KioskController> {
                       SizedBox(height: 2),
                       Text(
                         'Bypasses JWT/Auth interceptor',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     ],
                   ),
@@ -2041,9 +2104,9 @@ class KioskView extends GetView<KioskController> {
               ),
             );
           }),
-          
+
           const SizedBox(height: 16),
-          
+
           // Help/Autofill Actions
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2053,11 +2116,19 @@ class KioskView extends GetView<KioskController> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        controller.feedbackReferenceController.text = '12345678';
+                        controller.feedbackReferenceController.text =
+                            '12345678';
                         controller.feedbackReferenceLength.value = 8;
                       },
-                      icon: const Icon(Icons.edit, size: 16, color: Colors.white),
-                      label: const Text('Autofill Ref', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      icon: const Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Autofill Ref',
+                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueGrey.shade700,
                         shape: RoundedRectangleBorder(
@@ -2074,8 +2145,15 @@ class KioskView extends GetView<KioskController> {
                         controller.lastFeedbackRequest.value = null;
                         controller.lastFeedbackResponse.value = null;
                       },
-                      icon: const Icon(Icons.clear_all, size: 16, color: Colors.white),
-                      label: const Text('Clear Logs', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      icon: const Icon(
+                        Icons.clear_all,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Clear Logs',
+                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueGrey.shade700,
                         shape: RoundedRectangleBorder(
@@ -2096,14 +2174,25 @@ class KioskView extends GetView<KioskController> {
                     'id': 'debug-app-id',
                     'referenceNumber': '99999999',
                     'serviceName': 'Debug Test Service',
-                    'serviceCenterId': controller.serviceCenterId.value.isEmpty 
-                        ? 'debug-service-center-id' 
+                    'serviceCenterId': controller.serviceCenterId.value.isEmpty
+                        ? 'debug-service-center-id'
                         : controller.serviceCenterId.value,
                   };
                   controller.feedbackStep.value = 2;
                 },
-                icon: const Icon(Icons.skip_next, size: 18, color: Colors.white),
-                label: const Text('Bypass Step 1 (Force Step 2)', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                icon: const Icon(
+                  Icons.skip_next,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  'Bypass Step 1 (Force Step 2)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrange.shade800,
                   shape: RoundedRectangleBorder(
@@ -2114,9 +2203,9 @@ class KioskView extends GetView<KioskController> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Request Section
           const Text(
             'LAST REQUEST DETAILS:',
@@ -2151,9 +2240,9 @@ class KioskView extends GetView<KioskController> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Response Section
           const Text(
             'LAST RESPONSE DETAILS:',
@@ -2178,7 +2267,8 @@ class KioskView extends GetView<KioskController> {
                   final resp = controller.lastFeedbackResponse.value;
                   Color textColor = Colors.grey;
                   if (resp != null) {
-                    if (resp.contains('Error') || resp.contains('ApiException')) {
+                    if (resp.contains('Error') ||
+                        resp.contains('ApiException')) {
                       textColor = Colors.redAccent;
                     } else {
                       textColor = Colors.greenAccent;
@@ -2206,51 +2296,6 @@ class KioskView extends GetView<KioskController> {
 /// suffix — so the field reads as one visual unit: "[ field with
 /// built-in search action ]". Padding and font sizes are tuned to
 /// fit within the TextField's `suffixIconConstraints` (60 high).
-class _SearchActionButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _SearchActionButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        splashColor: Colors.white.withOpacity(0.2),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-          decoration: BoxDecoration(
-            color: ColorConstants.mainCorlor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.search_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'step.service.search_button'.tr,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PageNavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -2301,12 +2346,14 @@ class _ShimmerButton extends StatefulWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final double size;
 
   const _ShimmerButton({
     required this.label,
     required this.icon,
     required this.color,
     required this.onTap,
+    this.size = 350,
   });
 
   @override
@@ -2348,8 +2395,8 @@ class _ShimmerButtonState extends State<_ShimmerButton>
             onTap: widget.onTap,
             borderRadius: BorderRadius.circular(40),
             child: Container(
-              width: 350,
-              height: 350,
+              width: widget.size,
+              height: widget.size,
               decoration: BoxDecoration(
                 color: widget.color,
                 borderRadius: BorderRadius.circular(40),
@@ -2369,12 +2416,16 @@ class _ShimmerButtonState extends State<_ShimmerButton>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(widget.icon, size: 120, color: Colors.white),
-                          const SizedBox(height: 24),
+                          Icon(
+                            widget.icon,
+                            size: widget.size * 0.34,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: widget.size * 0.07),
                           Text(
                             widget.label,
-                            style: const TextStyle(
-                              fontSize: 40,
+                            style: TextStyle(
+                              fontSize: widget.size * 0.11,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -2433,9 +2484,7 @@ class _FeedbackStep1View extends StatelessWidget {
       padding: EdgeInsets.only(bottom: bottomInset),
       child: const Center(
         child: SingleChildScrollView(
-          child: RepaintBoundary(
-            child: _FeedbackStep1Card(),
-          ),
+          child: RepaintBoundary(child: _FeedbackStep1Card()),
         ),
       ),
     );
@@ -2502,7 +2551,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '1';
                     }
                   },
@@ -2523,7 +2573,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '2';
                     }
                   },
@@ -2544,7 +2595,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '3';
                     }
                   },
@@ -2570,7 +2622,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '4';
                     }
                   },
@@ -2591,7 +2644,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '5';
                     }
                   },
@@ -2612,7 +2666,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '6';
                     }
                   },
@@ -2638,7 +2693,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '7';
                     }
                   },
@@ -2659,7 +2715,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '8';
                     }
                   },
@@ -2680,7 +2737,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '9';
                     }
                   },
@@ -2729,7 +2787,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    if (controller.feedbackReferenceController.text.length < 8) {
+                    if (controller.feedbackReferenceController.text.length <
+                        8) {
                       controller.feedbackReferenceController.text += '0';
                     }
                   },
@@ -2752,8 +2811,8 @@ class _FeedbackStep1Card extends StatelessWidget {
                   onTap: () {
                     final text = controller.feedbackReferenceController.text;
                     if (text.isNotEmpty) {
-                      controller.feedbackReferenceController.text =
-                          text.substring(0, text.length - 1);
+                      controller.feedbackReferenceController.text = text
+                          .substring(0, text.length - 1);
                     }
                   },
                 ),
@@ -2832,8 +2891,10 @@ class _FeedbackStep1Card extends StatelessWidget {
                         Expanded(
                           child: TextField(
                             controller: controller.feedbackReferenceController,
-                            readOnly: true, // Prevents OS keyboard from popping up
-                            showCursor: false, // Hides cursor for custom keypad look
+                            readOnly:
+                                true, // Prevents OS keyboard from popping up
+                            showCursor:
+                                false, // Hides cursor for custom keypad look
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 38,
@@ -2859,7 +2920,10 @@ class _FeedbackStep1Card extends StatelessWidget {
                             borderRadius: BorderRadius.circular(15),
                             onTap: () => _openQRScanner(context, controller),
                             child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               child: Icon(
                                 Icons.qr_code_scanner_rounded,
                                 size: 36,
@@ -2875,14 +2939,18 @@ class _FeedbackStep1Card extends StatelessWidget {
                 const SizedBox(width: 14),
                 // Search button placed next to TextField
                 Obx(() {
-                  final bool isLookingUp = controller.isLookingUpReference.value;
+                  final bool isLookingUp =
+                      controller.isLookingUpReference.value;
                   final bool canAdvance =
-                      controller.feedbackReferenceLength.value == 8 && !isLookingUp;
+                      controller.feedbackReferenceLength.value == 8 &&
+                      !isLookingUp;
                   return SizedBox(
                     width: 180,
                     height: 75,
                     child: ElevatedButton(
-                      onPressed: canAdvance ? controller.goToFeedbackStep2 : null,
+                      onPressed: canAdvance
+                          ? controller.goToFeedbackStep2
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ColorConstants.orange,
                         disabledBackgroundColor: Colors.grey.shade200,
@@ -2900,7 +2968,9 @@ class _FeedbackStep1Card extends StatelessWidget {
                               height: 28,
                               child: CircularProgressIndicator(
                                 strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : Text(
@@ -2919,10 +2989,7 @@ class _FeedbackStep1Card extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           // Custom on-screen numeric keypad (Stretched horizontally to match)
-          SizedBox(
-            width: 700,
-            child: _buildCustomKeypad(controller),
-          ),
+          SizedBox(width: 700, child: _buildCustomKeypad(controller)),
         ],
       ),
     );
@@ -2936,7 +3003,10 @@ class _FeedbackStep1Card extends StatelessWidget {
   }
 
   // Opens a beautiful camera scanner dialog using front camera by default for easy kiosk interaction.
-  Future<void> _openQRScanner(BuildContext context, KioskController controller) async {
+  Future<void> _openQRScanner(
+    BuildContext context,
+    KioskController controller,
+  ) async {
     final status = await Permission.camera.request();
     if (!context.mounted) return;
     if (!status.isGranted) {
@@ -2959,7 +3029,10 @@ class _FeedbackStep1Card extends StatelessWidget {
       builder: (context) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
+          ),
           child: Container(
             width: 500,
             height: 600,
@@ -3011,23 +3084,32 @@ class _FeedbackStep1Card extends StatelessWidget {
                           ms.MobileScanner(
                             controller: scannerController,
                             onDetect: (capture) {
-                              final List<ms.Barcode> barcodes = capture.barcodes;
+                              final List<ms.Barcode> barcodes =
+                                  capture.barcodes;
                               for (final barcode in barcodes) {
-                                final String? rawValue = barcode.rawValue ?? barcode.displayValue;
+                                final String? rawValue =
+                                    barcode.rawValue ?? barcode.displayValue;
                                 if (rawValue != null) {
                                   final ref = _extractReference(rawValue);
                                   if (ref != null) {
                                     scannerController.dispose();
                                     Navigator.of(context).pop();
-                                    
+
                                     // Populate input field
-                                    controller.feedbackReferenceController.text = ref;
-                                    controller.feedbackReferenceLength.value = 8;
-                                    
+                                    controller
+                                            .feedbackReferenceController
+                                            .text =
+                                        ref;
+                                    controller.feedbackReferenceLength.value =
+                                        8;
+
                                     // Auto submit after a brief 300ms delay for visual feedback
-                                    Future.delayed(const Duration(milliseconds: 300), () {
-                                      controller.goToFeedbackStep2();
-                                    });
+                                    Future.delayed(
+                                      const Duration(milliseconds: 300),
+                                      () {
+                                        controller.goToFeedbackStep2();
+                                      },
+                                    );
                                     break;
                                   }
                                 }
@@ -3049,28 +3131,52 @@ class _FeedbackStep1Card extends StatelessWidget {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () => scannerController.switchCamera(),
-                        icon: const Icon(Icons.flip_camera_ios_rounded, color: Colors.white),
+                        icon: const Icon(
+                          Icons.flip_camera_ios_rounded,
+                          color: Colors.white,
+                        ),
                         label: Text(
                           'feedback.step1.switch_camera'.tr,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: ColorConstants.mainCorlor,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
                       ),
                       ElevatedButton.icon(
                         onPressed: () => scannerController.toggleTorch(),
-                        icon: const Icon(Icons.flash_on_rounded, color: Colors.white),
+                        icon: const Icon(
+                          Icons.flash_on_rounded,
+                          color: Colors.white,
+                        ),
                         label: Text(
                           'feedback.step1.flash'.tr,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
                       ),
                     ],
@@ -3093,7 +3199,8 @@ class _ScannerOverlay extends StatefulWidget {
   State<_ScannerOverlay> createState() => _ScannerOverlayState();
 }
 
-class _ScannerOverlayState extends State<_ScannerOverlay> with SingleTickerProviderStateMixin {
+class _ScannerOverlayState extends State<_ScannerOverlay>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override
@@ -3121,15 +3228,14 @@ class _ScannerOverlayState extends State<_ScannerOverlay> with SingleTickerProvi
         return Stack(
           children: [
             Positioned.fill(
-              child: CustomPaint(
-                painter: _ScannerCutoutPainter(),
-              ),
+              child: CustomPaint(painter: _ScannerCutoutPainter()),
             ),
             AnimatedBuilder(
               animation: _animationController,
               builder: (context, child) {
                 return Positioned(
-                  top: top + 10 + ((rectSize - 20) * _animationController.value),
+                  top:
+                      top + 10 + ((rectSize - 20) * _animationController.value),
                   left: left + 10,
                   right: left + 10,
                   child: Container(
@@ -3190,10 +3296,16 @@ class _ScannerCutoutPainter extends CustomPainter {
     final double top = (size.height - rectSize) / 2;
     final rect = Rect.fromLTWH(left, top, rectSize, rectSize);
 
-    final backgroundPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final cutoutPath = Path()..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(24)));
-    
-    final path = Path.combine(PathOperation.difference, backgroundPath, cutoutPath);
+    final backgroundPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final cutoutPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(24)));
+
+    final path = Path.combine(
+      PathOperation.difference,
+      backgroundPath,
+      cutoutPath,
+    );
     canvas.drawPath(path, paint);
 
     final borderPaint = Paint()
@@ -3236,7 +3348,12 @@ class _ScannerCutoutPainter extends CustomPainter {
       Path()
         ..moveTo(left + rectSize - cornerLength, top + rectSize)
         ..lineTo(left + rectSize - radius, top + rectSize)
-        ..quadraticBezierTo(left + rectSize, top + rectSize, left + rectSize, top + rectSize - radius)
+        ..quadraticBezierTo(
+          left + rectSize,
+          top + rectSize,
+          left + rectSize,
+          top + rectSize - radius,
+        )
         ..lineTo(left + rectSize, top + rectSize - cornerLength),
       borderPaint,
     );
