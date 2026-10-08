@@ -623,13 +623,41 @@ class KioskController extends GetxController {
     }
   }
 
+  // Step 13 = ticket choice (ຮັບບັດຄິວ | ສະໜອງຂໍ້ມູນ), shown right after the
+  // welcome button. Numbered outside 1–9 so nextStep()/the progress dots,
+  // which assume the linear info flow, are untouched.
+  void goToTicketChoice() {
+    currentStep.value = 13;
+  }
+
+  // "ຮັບບັດຄິວ" on the ticket choice: issue a ticket straight away, without
+  // asking for any personal info. Clears anything left over from a citizen
+  // who started "ສະໜອງຂໍ້ມູນ" and came back, so submitBooking() falls back
+  // to its unspecified defaults.
+  void issueQuickTicket() {
+    gender.value = "";
+    ethnicity.value = "";
+    ageRange.value = "";
+    isDisabled.value = false;
+    selectedServiceId.value = "";
+    selectedServiceName.value = "";
+    visitPurpose.value = 'INQUIRY';
+    submitBooking('', 'purpose.inquiry'.tr);
+  }
+
   void prevStep() {
     if (currentStep.value > 1) {
       if (currentStep.value == 9 ||
           currentStep.value == 10 ||
-          currentStep.value == 11) {
-        // If coming back from ticket result, Service Directory, or Feedback, reset to welcome
+          currentStep.value == 11 ||
+          currentStep.value == 13) {
+        // If coming back from ticket result, Service Directory, Feedback, or
+        // the ticket choice, reset to welcome
         resetBooking();
+      } else if (currentStep.value == 2) {
+        // Gender is the first "ສະໜອງຂໍ້ມູນ" step — back returns to the
+        // ticket choice, not straight to welcome.
+        currentStep.value = 13;
       } else {
         currentStep.value--;
       }

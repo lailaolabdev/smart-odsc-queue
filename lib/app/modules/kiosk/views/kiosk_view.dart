@@ -116,32 +116,46 @@ class KioskView extends GetView<KioskController> {
             ),
             // Back Button (Top-Left) — hidden on the welcome step (1)
             // because there is nothing to go back to once the kiosk is
-            // the app's root route. White pill + soft shadow so it
-            // never gets visually swallowed by step content sitting near
-            // the top of the page (titles, logos, service cards).
+            // the app's root route. Brand-blue circle (same gradient as the
+            // highlighted "ຮັບບັດຄິວ" card) with a white arrow, so it never
+            // gets visually swallowed by step content sitting near the top
+            // of the page (titles, logos, cards).
             Obx(() {
               if (controller.currentStep.value > 1) {
+                const blue = ColorConstants.mainCorlor;
                 return Positioned(
                   top: 24,
                   left: 24,
                   child: SafeArea(
                     child: Material(
-                      color: Colors.white,
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.18),
+                      color: Colors.transparent,
                       shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: controller.prevStep,
-                        child: Tooltip(
-                          message: 'common.back'.tr,
-                          child: const SizedBox(
-                            width: 56,
-                            height: 56,
-                            child: Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Color(0xFF1A1A1A),
-                              size: 24,
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              blue,
+                              Color.lerp(blue, Colors.black, 0.2)!,
+                            ],
+                          ),
+                        ),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: controller.prevStep,
+                          child: Tooltip(
+                            message: 'common.back'.tr,
+                            // 30% larger than the old 56px / 24px button.
+                            child: const SizedBox(
+                              width: 73,
+                              height: 73,
+                              child: Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Colors.white,
+                                size: 31,
+                              ),
                             ),
                           ),
                         ),
@@ -222,6 +236,8 @@ class KioskView extends GetView<KioskController> {
         return _buildFeedbackStep();
       case 12:
         return _buildPrintChoiceStep();
+      case 13:
+        return _buildTicketChoiceStep();
       default:
         return const SizedBox.shrink();
     }
@@ -236,7 +252,12 @@ class KioskView extends GetView<KioskController> {
     bool isScrollable = false,
     bool compactHeader = false,
     bool showLogo = true,
+    // Pin the title's line height so Lao and Latin fonts (different
+    // ascent/descent) occupy the same vertical space — stops the content
+    // below from jumping when the language is switched.
+    bool lockTitleHeight = false,
   }) {
+    final titleFontSize = compactHeader ? 32.0 : 42.0;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 40,
@@ -272,8 +293,15 @@ class KioskView extends GetView<KioskController> {
               },
               child: Text(
                 title,
+                strutStyle: lockTitleHeight
+                    ? StrutStyle(
+                        fontSize: titleFontSize,
+                        height: 1.4,
+                        forceStrutHeight: true,
+                      )
+                    : null,
                 style: TextStyle(
-                  fontSize: compactHeader ? 32 : 42,
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF1A1A1A),
                   letterSpacing: -0.5,
@@ -317,9 +345,45 @@ class KioskView extends GetView<KioskController> {
           label: 'welcome.queue_button'.tr,
           icon: Icons.touch_app_rounded,
           color: ColorConstants.mainCorlor,
-          onTap: controller.nextStep,
+          onTap: controller.goToTicketChoice,
           size: 440,
         ),
+      ),
+    );
+  }
+
+  // Step 13: ຮັບບັດຄິວ issues a ticket immediately (no personal info);
+  // ສະໜອງຂໍ້ມູນ runs the full gender → … → purpose flow starting at step 2.
+  Widget _buildTicketChoiceStep() {
+    return _buildStepContainer(
+      title: 'step.ticket_choice.title'.tr,
+      showLogo: false,
+      lockTitleHeight: true,
+      // ຮັບບັດຄິວ sits centred; ສະໜອງຂໍ້ມູນ peeks in from the right and is
+      // brought to the centre by swiping left (or tapping it).
+      child: _SwipeCardCarousel(
+        children: [
+          _buildOptionCard(
+            label: 'step.ticket_choice.quick'.tr,
+            icon: Icons.confirmation_number_rounded,
+            color: ColorConstants.mainCorlor,
+            onTap: controller.issueQuickTicket,
+            scale: 1.485,
+            highlighted: true,
+            fixedLabelLines: 2,
+          ),
+          _buildOptionCard(
+            label: 'step.ticket_choice.provide_info'.tr,
+            icon: Icons.edit_note_rounded,
+            color: const Color(0xFFEC612C), // brand orange
+            outlined: true,
+            onTap: () => controller.currentStep.value = 2,
+            // 25% smaller than the ຮັບບັດຄິວ card so the quick ticket is the
+            // obvious primary action.
+            scale: 1.485 * 0.75,
+            fixedLabelLines: 2,
+          ),
+        ],
       ),
     );
   }
@@ -1453,55 +1517,122 @@ class KioskView extends GetView<KioskController> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    // Uniform size multiplier — 1.0 everywhere except the ticket choice
+    // step, which shows only two cards and can afford them bigger.
+    double scale = 1.0,
+    // Filled in [color] with white content, a colored glow and the welcome
+    // button's pulse + shimmer, so this card reads as the primary action
+    // next to its plain white siblings.
+    bool highlighted = false,
+    // When set, the label always occupies exactly this many lines (forced
+    // strut height), so the card's height doesn't change when the language
+    // switches and a label wraps differently or the font's metrics differ.
+    int? fixedLabelLines,
+    // Thin slate outline + slate-tinted shadow, matching the gender-step
+    // cards (_buildChoiceTile). Only applies to non-highlighted cards.
+    bool outlined = false,
   }) {
-    return Container(
-      width: 280,
+    const Color slate = Color(0xFF455C91);
+    final labelFontSize = 34 * scale;
+    const labelLineHeight = 1.3;
+    final labelText = Text(
+      label,
+      style: TextStyle(
+        fontSize: labelFontSize,
+        fontWeight: FontWeight.w800,
+        color: highlighted ? Colors.white : const Color(0xFF1A1A1A),
+        letterSpacing: -0.5,
+      ),
+      strutStyle: fixedLabelLines == null
+          ? null
+          : StrutStyle(
+              fontSize: labelFontSize,
+              height: labelLineHeight,
+              forceStrutHeight: true,
+            ),
+      maxLines: fixedLabelLines,
+      overflow: fixedLabelLines == null ? null : TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+    );
+    final card = Container(
+      width: 280 * scale,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        color: highlighted ? null : Colors.white,
+        gradient: highlighted
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color, Color.lerp(color, Colors.black, 0.2)!],
+              )
+            : null,
+        borderRadius: BorderRadius.circular(32 * scale),
+        border: outlined && !highlighted
+            ? Border.all(color: slate.withOpacity(0.10), width: 2)
+            : null,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
+          highlighted
+              ? BoxShadow(
+                  color: color.withOpacity(0.45),
+                  blurRadius: 32,
+                  offset: const Offset(0, 16),
+                )
+              : outlined
+              ? BoxShadow(
+                  color: slate.withOpacity(0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                )
+              : BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(32 * scale),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+            padding: EdgeInsets.symmetric(
+              vertical: 48 * scale,
+              horizontal: 24 * scale,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(20 * scale),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(24),
+                    color: highlighted
+                        ? Colors.white.withOpacity(0.18)
+                        : color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(24 * scale),
                   ),
-                  child: Icon(icon, size: 80, color: color),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1A1A1A),
-                    letterSpacing: -0.5,
+                  child: Icon(
+                    icon,
+                    size: 80 * scale,
+                    color: highlighted ? Colors.white : color,
                   ),
-                  textAlign: TextAlign.center,
                 ),
+                SizedBox(height: 24 * scale),
+                if (fixedLabelLines == null)
+                  labelText
+                else
+                  SizedBox(
+                    height: labelFontSize * labelLineHeight * fixedLabelLines,
+                    child: Center(child: labelText),
+                  ),
               ],
             ),
           ),
         ),
       ),
     );
+
+    if (!highlighted) return card;
+    return _PulseShimmer(borderRadius: 32 * scale, child: card);
   }
 
   Widget _buildWideButton({
@@ -2434,27 +2565,41 @@ class _ShimmerButtonState extends State<_ShimmerButton>
                         ],
                       ),
                     ),
-                    // Shimmer Light Effect (Sharper for metallic look)
+                    // Shimmer Light Effect (Sharper for metallic look).
+                    // Painted as a plain gradient fill rather than a
+                    // ShaderMask over a transparent box: Impeller (Android)
+                    // culls a mask whose child draws nothing, so the sweep
+                    // never showed on the tablet.
                     Positioned.fill(
-                      child: ShaderMask(
-                        shaderCallback: (bounds) {
-                          return LinearGradient(
-                            begin: Alignment(-1.0 + value, -1.0),
-                            end: Alignment(1.0 + value, 1.0),
-                            colors: [
-                              Colors.transparent,
-                              Colors.white.withOpacity(0.0),
-                              Colors.white.withOpacity(0.1),
-                              Colors.white.withOpacity(0.6), // Brighter center
-                              Colors.white.withOpacity(0.1),
-                              Colors.white.withOpacity(0.0),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.4, 0.45, 0.5, 0.55, 0.6, 1.0],
-                          ).createShader(bounds);
-                        },
-                        blendMode: BlendMode.srcOver,
-                        child: Container(color: Colors.transparent),
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment(-1.0 + value, -1.0),
+                              end: Alignment(1.0 + value, 1.0),
+                              colors: [
+                                Colors.transparent,
+                                Colors.white.withOpacity(0.0),
+                                Colors.white.withOpacity(0.1),
+                                Colors.white.withOpacity(
+                                  0.6,
+                                ), // Brighter center
+                                Colors.white.withOpacity(0.1),
+                                Colors.white.withOpacity(0.0),
+                                Colors.transparent,
+                              ],
+                              stops: const [
+                                0.0,
+                                0.4,
+                                0.45,
+                                0.5,
+                                0.55,
+                                0.6,
+                                1.0,
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -2464,6 +2609,176 @@ class _ShimmerButtonState extends State<_ShimmerButton>
           ),
         );
       },
+    );
+  }
+}
+
+/// The welcome button's (_ShimmerButton) pulse + diagonal light sweep,
+/// applied to an arbitrary [child] — same 3s cycle, scale and gradient, so
+/// a highlighted card moves exactly like the welcome "ກົດບັດຄິວ" button.
+class _PulseShimmer extends StatefulWidget {
+  final Widget child;
+  final double borderRadius;
+
+  const _PulseShimmer({required this.child, required this.borderRadius});
+
+  @override
+  State<_PulseShimmer> createState() => _PulseShimmerState();
+}
+
+class _PulseShimmerState extends State<_PulseShimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        double value = _controller.value * 4.0 - 2.0; // -2.0 to 2.0 range
+        double scale =
+            1.0 + (0.03 * (1.0 - (value.abs() / 2.0).clamp(0.0, 1.0)));
+
+        return Transform.scale(
+          scale: scale,
+          child: Stack(
+            children: [
+              child!,
+              // Shimmer sits on top but lets taps through to the card.
+              // Painted as a plain gradient fill rather than a ShaderMask
+              // over a transparent box: Impeller (Android) culls a mask
+              // whose child draws nothing, so the sweep never showed on
+              // the tablet.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(widget.borderRadius),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment(-1.0 + value, -1.0),
+                          end: Alignment(1.0 + value, 1.0),
+                          colors: [
+                            Colors.transparent,
+                            Colors.white.withOpacity(0.0),
+                            Colors.white.withOpacity(0.1),
+                            Colors.white.withOpacity(0.6),
+                            Colors.white.withOpacity(0.1),
+                            Colors.white.withOpacity(0.0),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.4, 0.45, 0.5, 0.55, 0.6, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Horizontal swipe carousel for the ticket choice step: the current card is
+/// centred and its neighbours peek in from the sides. Tapping a side card
+/// slides it to the centre instead of triggering it, so a citizen can't
+/// fire the wrong action by brushing the edge of the screen.
+class _SwipeCardCarousel extends StatefulWidget {
+  final List<Widget> children;
+
+  const _SwipeCardCarousel({required this.children});
+
+  @override
+  State<_SwipeCardCarousel> createState() => _SwipeCardCarouselState();
+}
+
+class _SwipeCardCarouselState extends State<_SwipeCardCarousel> {
+  // 0.45 of the 1200px content width = 540px per page: the 416px centre
+  // card fits with room for its pulse, and ~2/3 of the next card shows.
+  final PageController _pageController = PageController(viewportFraction: 0.45);
+  int _current = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _goTo(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 540,
+          child: PageView.builder(
+            controller: _pageController,
+            // Let card shadows and the peeking neighbour paint past the
+            // viewport edge instead of being cut off.
+            clipBehavior: Clip.none,
+            itemCount: widget.children.length,
+            onPageChanged: (index) => setState(() => _current = index),
+            itemBuilder: (context, index) {
+              final card = Center(child: widget.children[index]);
+              if (index == _current) return card;
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _goTo(index),
+                child: AbsorbPointer(child: card),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(widget.children.length, (index) {
+            final isActive = index == _current;
+            return GestureDetector(
+              onTap: () => _goTo(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                height: 12,
+                width: isActive ? 40 : 12,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? ColorConstants.mainCorlor
+                      : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
