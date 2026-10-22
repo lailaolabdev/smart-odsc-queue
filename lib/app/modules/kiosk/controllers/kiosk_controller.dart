@@ -687,12 +687,12 @@ class KioskController extends GetxController {
     isFeedbackSubmitted.value = false;
   }
 
+  /// How long the success (ticket-result) screen stays up before it
+  /// auto-resets to the welcome screen. Also drives the countdown ring.
+  static const int resultTimeoutSeconds = 30;
+
   void startTimer() {
-    // Success (ticket-result) screen stays up for 2 minutes before it
-    // auto-resets to the welcome screen — enough time for the citizen to
-    // read the queue number / scan the QR whether they took a photo or a
-    // printed ticket.
-    timeLeft.value = 120;
+    timeLeft.value = resultTimeoutSeconds;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timeLeft.value > 0) {

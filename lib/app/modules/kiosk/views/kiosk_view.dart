@@ -359,10 +359,13 @@ class KioskView extends GetView<KioskController> {
       title: 'step.ticket_choice.title'.tr,
       showLogo: false,
       lockTitleHeight: true,
-      // ຮັບບັດຄິວ sits centred; ສະໜອງຂໍ້ມູນ peeks in from the right and is
-      // brought to the centre by swiping left (or tapping it).
-      child: _SwipeCardCarousel(
+      // ຮັບບັດຄິວ sits dead centre; ສະໜອງຂໍ້ມູນ sits beside it on the right,
+      // fully visible and tappable. The equal Expanded slots on both sides
+      // keep the main card centred regardless of the side card's width.
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const Expanded(child: SizedBox()),
           _buildOptionCard(
             label: 'step.ticket_choice.quick'.tr,
             icon: Icons.confirmation_number_rounded,
@@ -370,18 +373,25 @@ class KioskView extends GetView<KioskController> {
             onTap: controller.issueQuickTicket,
             scale: 1.485,
             highlighted: true,
+            gifAsset: 'assets/images/receipt-print-hd.gif',
+            gifFadeBottom: 0.1,
             fixedLabelLines: 2,
           ),
-          _buildOptionCard(
-            label: 'step.ticket_choice.provide_info'.tr,
-            icon: Icons.edit_note_rounded,
-            color: const Color(0xFFEC612C), // brand orange
-            outlined: true,
-            onTap: () => controller.currentStep.value = 2,
-            // 25% smaller than the ຮັບບັດຄິວ card so the quick ticket is the
-            // obvious primary action.
-            scale: 1.485 * 0.75,
-            fixedLabelLines: 2,
+          Expanded(
+            child: Center(
+              child: _buildOptionCard(
+                label: 'step.ticket_choice.provide_info'.tr,
+                icon: Icons.edit_note_rounded,
+                color: const Color(0xFFEC612C), // brand orange
+                outlined: true,
+                gifAsset: 'assets/images/checklist-add-vector.gif',
+                onTap: () => controller.currentStep.value = 2,
+                // 25% smaller than the ຮັບບັດຄິວ card so the quick ticket is
+                // the obvious primary action.
+                scale: 1.485 * 0.75,
+                fixedLabelLines: 2,
+              ),
+            ),
           ),
         ],
       ),
@@ -1428,77 +1438,51 @@ class KioskView extends GetView<KioskController> {
                 ),
               ),
               const SizedBox(height: 12),
-              Obx(() {
-                if (controller.skipPrint.value) {
-                  return Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ColorConstants.mainCorlor.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: ColorConstants.mainCorlor.withOpacity(0.2),
-                            width: 1.5,
+              // Auto-return countdown drawn as the button's border, draining
+              // clockwise from the top. The button stays fully active, so
+              // nobody thinks they must wait before tapping it.
+              Obx(
+                () => TweenAnimationBuilder<double>(
+                  tween: Tween(
+                    end:
+                        controller.timeLeft.value /
+                        KioskController.resultTimeoutSeconds,
+                  ),
+                  duration: const Duration(seconds: 1),
+                  builder: (context, progress, child) => CustomPaint(
+                    foregroundPainter: _CountdownBorderPainter(
+                      progress: progress,
+                      color: ColorConstants.mainCorlor,
+                    ),
+                    child: child,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(_CountdownBorderPainter.gap),
+                    child: SizedBox(
+                      width: 320,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: controller.resetBooking,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorConstants.mainCorlor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 3,
+                          shadowColor: ColorConstants.mainCorlor.withOpacity(
+                            0.3,
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                value: controller.timeLeft.value / 60.0,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants.mainCorlor,
-                                ),
-                                backgroundColor: ColorConstants.mainCorlor
-                                    .withOpacity(0.2),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${'result.auto_return'.tr} ${controller.timeLeft.value} ${'result.seconds'.tr}',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: ColorConstants.mainCorlor,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          'result.back_to_home'.tr,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-              SizedBox(
-                width: 320,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: controller.resetBooking,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorConstants.mainCorlor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 3,
-                    shadowColor: ColorConstants.mainCorlor.withOpacity(0.3),
-                  ),
-                  child: Text(
-                    'result.back_to_home'.tr,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
@@ -1531,6 +1515,11 @@ class KioskView extends GetView<KioskController> {
     // Thin slate outline + slate-tinted shadow, matching the gender-step
     // cards (_buildChoiceTile). Only applies to non-highlighted cards.
     bool outlined = false,
+    // Animated GIF shown in place of [icon], tinted like the icon would be
+    // (see _TintedGif).
+    String? gifAsset,
+    // Bottom fade for [gifAsset] (see _TintedGif.fadeBottom).
+    double gifFadeBottom = 0,
   }) {
     const Color slate = Color(0xFF455C91);
     final labelFontSize = 34 * scale;
@@ -1610,11 +1599,27 @@ class KioskView extends GetView<KioskController> {
                         : color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(24 * scale),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 80 * scale,
-                    color: highlighted ? Colors.white : color,
-                  ),
+                  child: gifAsset != null
+                      // Same square as the icon so the card keeps its size;
+                      // clipped because the GIF animates edge to edge.
+                      ? SizedBox.square(
+                          dimension: 80 * scale,
+                          child: ClipRect(
+                            child: _TintedGif(
+                              asset: gifAsset,
+                              height: 80 * scale,
+                              color: highlighted ? Colors.white : color,
+                              fadeBottom: gifFadeBottom,
+                              fallbackIcon: icon,
+                              fallbackSize: 80 * scale,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          icon,
+                          size: 80 * scale,
+                          color: highlighted ? Colors.white : color,
+                        ),
                 ),
                 SizedBox(height: 24 * scale),
                 if (fixedLabelLines == null)
@@ -2547,10 +2552,12 @@ class _ShimmerButtonState extends State<_ShimmerButton>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            widget.icon,
-                            size: widget.size * 0.34,
-                            color: Colors.white,
+                          // Animated tapping hand.
+                          _TintedGif(
+                            asset: 'assets/images/tap-hand-click-hd.gif',
+                            height: widget.size * 0.4,
+                            fallbackIcon: widget.icon,
+                            fallbackSize: widget.size * 0.34,
                           ),
                           SizedBox(height: widget.size * 0.07),
                           Text(
@@ -2694,91 +2701,6 @@ class _PulseShimmerState extends State<_PulseShimmer>
           ),
         );
       },
-    );
-  }
-}
-
-/// Horizontal swipe carousel for the ticket choice step: the current card is
-/// centred and its neighbours peek in from the sides. Tapping a side card
-/// slides it to the centre instead of triggering it, so a citizen can't
-/// fire the wrong action by brushing the edge of the screen.
-class _SwipeCardCarousel extends StatefulWidget {
-  final List<Widget> children;
-
-  const _SwipeCardCarousel({required this.children});
-
-  @override
-  State<_SwipeCardCarousel> createState() => _SwipeCardCarouselState();
-}
-
-class _SwipeCardCarouselState extends State<_SwipeCardCarousel> {
-  // 0.45 of the 1200px content width = 540px per page: the 416px centre
-  // card fits with room for its pulse, and ~2/3 of the next card shows.
-  final PageController _pageController = PageController(viewportFraction: 0.45);
-  int _current = 0;
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _goTo(int index) {
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 540,
-          child: PageView.builder(
-            controller: _pageController,
-            // Let card shadows and the peeking neighbour paint past the
-            // viewport edge instead of being cut off.
-            clipBehavior: Clip.none,
-            itemCount: widget.children.length,
-            onPageChanged: (index) => setState(() => _current = index),
-            itemBuilder: (context, index) {
-              final card = Center(child: widget.children[index]);
-              if (index == _current) return card;
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _goTo(index),
-                child: AbsorbPointer(child: card),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(widget.children.length, (index) {
-            final isActive = index == _current;
-            return GestureDetector(
-              onTap: () => _goTo(index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                height: 12,
-                width: isActive ? 40 : 12,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? ColorConstants.mainCorlor
-                      : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            );
-          }),
-        ),
-      ],
     );
   }
 }
@@ -3676,4 +3598,119 @@ class _ScannerCutoutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Pill-shaped outline around the "next ticket" button showing how much of
+/// the result screen's auto-return time is left. [progress] runs 1 → 0;
+/// the stroke starts at top-centre and drains back toward it.
+class _CountdownBorderPainter extends CustomPainter {
+  /// Space between the button and the ring, and the ring's stroke width.
+  static const double gap = 5;
+  static const double strokeWidth = 3;
+
+  final double progress;
+  final Color color;
+
+  _CountdownBorderPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(strokeWidth / 2);
+    final r = rect.height / 2;
+    final path = Path()
+      ..moveTo(rect.center.dx, rect.top)
+      ..lineTo(rect.right - r, rect.top)
+      ..arcToPoint(
+        Offset(rect.right - r, rect.bottom),
+        radius: Radius.circular(r),
+      )
+      ..lineTo(rect.left + r, rect.bottom)
+      ..arcToPoint(Offset(rect.left + r, rect.top), radius: Radius.circular(r))
+      ..close();
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawPath(path, paint..color = color.withOpacity(0.15));
+
+    final metric = path.computeMetrics().first;
+    canvas.drawPath(
+      metric.extractPath(0, metric.length * progress.clamp(0.0, 1.0)),
+      paint..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CountdownBorderPainter old) =>
+      old.progress != progress || old.color != color;
+}
+
+/// Plays one of the blue-on-white GIF icon animations in [color] on a
+/// transparent background, so it sits on a card like a Material icon of
+/// that colour. The matrix paints every pixel [color] and derives its alpha
+/// from how dark the source is (white background → transparent).
+class _TintedGif extends StatelessWidget {
+  final String asset;
+  final double height;
+  final Color color;
+  final IconData fallbackIcon;
+  final double fallbackSize;
+
+  /// Fraction of the height at the bottom that fades to transparent. For
+  /// GIFs whose content slides in across the bottom edge (the next receipt
+  /// in receipt-print-hd.gif), so it fades in rather than flashing as a
+  /// hard-cut strip.
+  final double fadeBottom;
+
+  const _TintedGif({
+    required this.asset,
+    required this.height,
+    required this.fallbackIcon,
+    required this.fallbackSize,
+    this.color = Colors.white,
+    this.fadeBottom = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final gif = _tinted(context);
+    if (fadeBottom <= 0) return gif;
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (bounds) => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: const [Colors.white, Colors.white, Colors.transparent],
+        stops: [0, 1 - fadeBottom, 1],
+      ).createShader(bounds),
+      child: gif,
+    );
+  }
+
+  Widget _tinted(BuildContext context) {
+    return ColorFiltered(
+      colorFilter: ColorFilter.matrix([
+        0, 0, 0, 0, color.r * 255, //
+        0, 0, 0, 0, color.g * 255, //
+        0, 0, 0, 0, color.b * 255, //
+        // Alpha from darkness, reaching 0 at R = 235 rather than 255: the
+        // GIFs' "white" background is full of near-white compression noise
+        // that changes every frame and would otherwise flicker as faint
+        // white specks and lines on a coloured card.
+        -1.8, 0, 0, 0, 423,
+      ]),
+      child: Image.asset(
+        asset,
+        height: height,
+        // Decode at display size, not the ~620×900 source, to keep the
+        // 150+-frame animations light on the tablet.
+        cacheHeight: (height * MediaQuery.of(context).devicePixelRatio).round(),
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(fallbackIcon, size: fallbackSize, color: color),
+      ),
+    );
+  }
 }
