@@ -219,9 +219,9 @@ class KioskView extends GetView<KioskController> {
       case 3:
         return _buildAgeStep();
       case 4:
-        return _buildEthnicityStep();
-      case 5:
         return _buildDisabilityStep();
+      case 5:
+        return _buildPurposeStep();
       case 6:
         return _buildPurposeStep();
       case 7:
@@ -359,31 +359,52 @@ class KioskView extends GetView<KioskController> {
       title: 'step.ticket_choice.title'.tr,
       showLogo: false,
       lockTitleHeight: true,
-      // ຮັບບັດຄິວ sits centred; ສະໜອງຂໍ້ມູນ peeks in from the right and is
-      // brought to the centre by swiping left (or tapping it).
-      child: _SwipeCardCarousel(
-        children: [
-          _buildOptionCard(
-            label: 'step.ticket_choice.quick'.tr,
-            icon: Icons.confirmation_number_rounded,
-            color: ColorConstants.mainCorlor,
-            onTap: controller.issueQuickTicket,
-            scale: 1.485,
-            highlighted: true,
-            fixedLabelLines: 2,
-          ),
-          _buildOptionCard(
-            label: 'step.ticket_choice.provide_info'.tr,
-            icon: Icons.edit_note_rounded,
-            color: const Color(0xFFEC612C), // brand orange
-            outlined: true,
-            onTap: () => controller.currentStep.value = 2,
-            // 25% smaller than the ຮັບບັດຄິວ card so the quick ticket is the
-            // obvious primary action.
-            scale: 1.485 * 0.75,
-            fixedLabelLines: 2,
-          ),
-        ],
+      isScrollable: true,
+      // Equal columns keep the primary action on the screen centre. Each
+      // button fits its own available width/height with room for the pulse.
+      child: Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 28),
+        child: Row(
+          children: [
+            const Expanded(child: SizedBox.shrink()),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: _buildShimmerWelcomeButton(
+                      label: 'step.ticket_choice.quick'.tr,
+                      icon: Icons.confirmation_number_rounded,
+                      color: ColorConstants.mainCorlor,
+                      onTap: controller.issueQuickTicket,
+                      size: 400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: _buildOptionCard(
+                      label: 'step.ticket_choice.provide_info'.tr,
+                      icon: Icons.edit_note_rounded,
+                      color: const Color(0xFFEC612C),
+                      outlined: true,
+                      onTap: () => controller.currentStep.value = 2,
+                      scale: 0.75,
+                      fixedLabelLines: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -733,32 +754,25 @@ class KioskView extends GetView<KioskController> {
   static const String _serviceTypeIconBase =
       'https://storage-console.odsc.gov.la/odsc-public-storage/files';
 
-  // One geometry for every purpose-step card, whether its glyph is a Material
-  // icon or an uploaded PNG.
-  //
-  // Height is derived, not picked: two rows plus the 32 gap must equal the
-  // 543 block every other step occupies (see _optionBar sizing on the age
-  // step), so the grid ends above the step-indicator dots instead of running
-  // under them — 255*2 + 32 = 542. Content needs 24*2 padding + 100 plate
-  // + 16 gap + 2 label lines (~60) = 224, so 255 has room to spare.
-  static const double _purposeCardW = 280;
-  static const double _purposeCardH = 255;
+  // Shared card geometry keeps service icons and labels aligned in the grid.
+  static const double _purposeCardW = 340;
+  static const double _purposeCardH = 230;
   static const double _purposeCardGap = 32;
-  static const double _purposeIconPlate = 100;
-  static const double _purposeGlyph = 64;
+  static const double _purposeIconPlate = 84;
+  static const double _purposeGlyph = 56;
 
   /// A purpose-step option. Pass [icon] for a Material glyph or [imageIcon]
-  /// for an uploaded ServiceType icon — both render at the same size inside
-  /// the same tinted plate, so a row of mixed cards stays uniform.
+  /// for an uploaded image; both render inside the same tinted plate.
   Widget _buildPurposeCard({
     required String label,
     required VoidCallback onTap,
     IconData? icon,
     String? imageIcon,
+    String imageBaseUrl = _serviceTypeIconBase,
     Color color = ColorConstants.mainCorlor,
   }) {
     final String iconUrl = imageIcon != null && imageIcon.isNotEmpty
-        ? '$_serviceTypeIconBase/$imageIcon'
+        ? '$imageBaseUrl/$imageIcon'
         : '';
     final Widget fallbackGlyph = Icon(
       icon ?? Icons.account_balance_rounded,
@@ -787,7 +801,7 @@ class KioskView extends GetView<KioskController> {
             onTap: onTap,
             borderRadius: BorderRadius.circular(32),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -813,14 +827,14 @@ class KioskView extends GetView<KioskController> {
                   Text(
                     label,
                     style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 27,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF1A1A1A),
-                      letterSpacing: -0.5,
-                      height: 1.15,
+                      letterSpacing: -0.2,
+                      height: 1.1,
                     ),
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -839,61 +853,78 @@ class KioskView extends GetView<KioskController> {
       showLogo: false,
       isScrollable: true,
       child: Obx(() {
-        if (controller.isLoadingTypes.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: ColorConstants.mainCorlor),
-          );
-        }
+        return Stack(
+          children: [
+            if (controller.isLoading.value)
+              const Center(
+                child: CircularProgressIndicator(
+                  color: ColorConstants.mainCorlor,
+                ),
+              )
+            else
+              GridView.builder(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisExtent: _purposeCardH,
+                  crossAxisSpacing: _purposeCardGap,
+                  mainAxisSpacing: 24,
+                ),
+                itemCount: controller.services.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Center(
+                      child: _buildPurposeCard(
+                        label: 'purpose.inquiry'.tr,
+                        icon: Icons.help_outline_rounded,
+                        color: Colors.blue,
+                        onTap: () {
+                          controller.visitPurpose.value = 'INQUIRY';
+                          controller.submitBooking('', 'purpose.inquiry'.tr);
+                        },
+                      ),
+                    );
+                  }
 
-        final types = controller.serviceTypes;
-
-        // Fixed order: inquiry first (blue), center-curated types in the
-        // middle (their own uploaded icon), skip-step card last (orange).
-        // Every card issues the ticket straight away — no service pick.
-        final cards = <Widget>[
-          _buildPurposeCard(
-            label: 'purpose.inquiry'.tr,
-            icon: Icons.help_outline,
-            color: Colors.blue,
-            onTap: () {
-              controller.visitPurpose.value = 'INQUIRY';
-              controller.submitBooking('', 'purpose.inquiry'.tr);
-            },
-          ),
-          for (final type in types)
-            _buildPurposeCard(
-              label: (type['name'] ?? '').toString(),
-              imageIcon: type['icon']?.toString(),
-              onTap: () => controller.selectServiceType(
-                (type['id'] ?? '').toString(),
-                (type['name'] ?? '').toString(),
+                  final service = controller.services[index - 1];
+                  final serviceId = service['id']?.toString() ?? '';
+                  final serviceName =
+                      service['name']?.toString() ?? 'step.service.unnamed'.tr;
+                  return Center(
+                    child: _buildPurposeCard(
+                      label: serviceName,
+                      icon: Icons.account_balance_rounded,
+                      imageIcon: service['icon']?.toString(),
+                      imageBaseUrl:
+                          'https://storage-console.odsc.gov.la/odsc-public-storage/images/original',
+                      color: ColorConstants.mainCorlor,
+                      onTap: () {
+                        controller.visitPurpose.value = 'INQUIRY';
+                        controller.submitBooking(serviceId, serviceName);
+                      },
+                    ),
+                  );
+                },
+              ),
+            Positioned(
+              right: 20,
+              bottom: 12,
+              child: _buildOptionCard(
+                label: 'step.service_choice.skip'.tr,
+                icon: Icons.skip_next_rounded,
+                color: Colors.orange,
+                scale: 0.68,
+                outlined: true,
+                onTap: () {
+                  controller.visitPurpose.value = 'SERVICE';
+                  controller.submitBooking(
+                    '',
+                    'step.service_choice.unspecified'.tr,
+                  );
+                },
               ),
             ),
-          _buildPurposeCard(
-            label: 'step.service_choice.skip'.tr,
-            icon: Icons.skip_next,
-            color: Colors.orange,
-            onTap: () {
-              controller.visitPurpose.value = 'SERVICE';
-              controller.submitBooking(
-                '',
-                'step.service_choice.unspecified'.tr,
-              );
-            },
-          ),
-        ];
-
-        // Wrap (not a stretch grid) so every card keeps the same 280px box
-        // whatever the type count is; the list scrolls once it passes two
-        // rows — the skip card usually lands on row 3.
-        return SingleChildScrollView(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
-            spacing: _purposeCardGap,
-            runSpacing: _purposeCardGap,
-            children: cards,
-          ),
+          ],
         );
       }),
     );
@@ -1154,6 +1185,9 @@ class KioskView extends GetView<KioskController> {
                                       serviceName;
                                   controller.currentStep.value = 2;
                                 } else {
+                                  if (controller.visitPurpose.value.isEmpty) {
+                                    controller.visitPurpose.value = 'SERVICE';
+                                  }
                                   controller.submitBooking(
                                     serviceId,
                                     serviceName,
@@ -1567,7 +1601,7 @@ class KioskView extends GetView<KioskController> {
             : null,
         borderRadius: BorderRadius.circular(32 * scale),
         border: outlined && !highlighted
-            ? Border.all(color: slate.withOpacity(0.10), width: 2)
+            ? Border.all(color: color.withOpacity(0.42), width: 2.5)
             : null,
         boxShadow: [
           highlighted

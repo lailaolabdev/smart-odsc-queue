@@ -182,24 +182,28 @@ class PrintableTicket extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            // Service Name - Clean and Bold
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                serviceName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            if (serviceName.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 12,
                 ),
-                textAlign: TextAlign.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "${'ticket.service_label'.tr}: $serviceName",
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+            ],
 
             // Ethnicity row (only when value provided)
             if (ethnicity != null && ethnicity!.isNotEmpty) ...[
