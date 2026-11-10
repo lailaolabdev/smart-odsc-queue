@@ -798,12 +798,10 @@ class KioskController extends GetxController {
         barCodeNumber.value = bcNumber;
         final trackingUri = Uri.https('odsc.gov.la', '/lo/queue-tracking', {
           if (queueId != null) 'queueId': queueId,
-          'queueNumber': qNumber,
-          'serviceCenterId': serviceCenterId.value,
         });
         trackingUrl.value = claimToken == null
             ? trackingUri.toString()
-            : '${trackingUri.toString()}#claim=${Uri.encodeQueryComponent(claimToken)}';
+            : 'https://odsc.gov.la/lo/q#c=${Uri.encodeComponent(claimToken)}';
         selectedServiceId.value = serviceId;
         selectedServiceName.value = serviceName;
         currentStep.value = 9; // Jump to result step
@@ -846,7 +844,9 @@ class KioskController extends GetxController {
               ),
               delay: const Duration(milliseconds: 100),
               context: Get.context,
-              pixelRatio: 3.0, // Increased for sharper thermal printing
+              // Capture the 400-wide ticket at the printer's 512-dot width
+              // so QR edges are not rescaled after capture.
+              pixelRatio: 512 / 400,
             );
 
         if (imageBytes != null) {

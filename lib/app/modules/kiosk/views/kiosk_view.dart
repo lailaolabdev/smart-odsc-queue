@@ -1377,7 +1377,7 @@ class KioskView extends GetView<KioskController> {
                             children: [
                               const Icon(
                                 Icons.check_circle,
-                                color: Colors.green,
+                                color: ColorConstants.orange,
                                 size: 60,
                               ),
                               const SizedBox(height: 12),
@@ -1405,7 +1405,7 @@ class KioskView extends GetView<KioskController> {
                                   style: const TextStyle(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+                                    color: ColorConstants.mainCorlor,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),

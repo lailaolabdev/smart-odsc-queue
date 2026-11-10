@@ -120,64 +120,29 @@ class PrintableTicket extends StatelessWidget {
 
             const Divider(color: Colors.black, thickness: 1.5, height: 30),
 
-            // Main Row: Queue Number and QR Code side-by-side
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Left Side: Queue Number
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ticket.queue_number_label'.tr,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        queueNumber,
-                        style: const TextStyle(
-                          fontSize: 120,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                          height: 1.0,
-                        ),
-                      ),
-                    ],
+            // Keep the ticket layout compact while QR printing is disabled.
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'ticket.queue_number_label'.tr,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20, color: Colors.black),
                   ),
-                ),
-
-                // Right Side: QR Code (Enlarged for scannability)
-                if (qrCodeData != null && qrCodeData!.isNotEmpty)
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      children: [
-                        Text(
-                          'ticket.scan_to_track'.tr,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          color: Colors.white,
-                          child: BarcodeWidget(
-                            barcode: Barcode.qrCode(),
-                            data: qrCodeData!,
-                            width: 140, // Increased size for thermal printers
-                            height: 140,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    queueNumber,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 120,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      height: 1.0,
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
 
             const SizedBox(height: 15),
