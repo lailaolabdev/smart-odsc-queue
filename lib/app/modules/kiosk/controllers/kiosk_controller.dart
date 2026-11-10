@@ -609,6 +609,11 @@ class KioskController extends GetxController {
 
   void nextStep() {
     if (currentStep.value < 9) {
+      // Ethnicity is no longer collected in the kiosk queue flow.
+      if (currentStep.value == 3) {
+        currentStep.value = 4;
+        return;
+      }
       // Logic for skipping service selection if already selected from Directory (Step 10)
       if (currentStep.value == 6 && selectedServiceId.value.isNotEmpty) {
         submitBooking(selectedServiceId.value, selectedServiceName.value);
@@ -787,10 +792,16 @@ class KioskController extends GetxController {
       if (response['status'] == true && response['data'] != null) {
         final qNumber = response['data']['queueNumber'] ?? "";
         final bcNumber = response['data']['barCodeNumber'] ?? "";
+        final queueId = _stringValue(response['data']['id']);
+        final claimToken = _stringValue(response['data']['claimToken']);
         queueNumber.value = qNumber;
         barCodeNumber.value = bcNumber;
-        trackingUrl.value =
-            "http://odsc.gov.la/lo/queue-tracking?queueNumber=$qNumber&serviceCenterId=${serviceCenterId.value}";
+        final trackingUri = Uri.https('odsc.gov.la', '/lo/queue-tracking', {
+          if (queueId != null) 'queueId': queueId,
+        });
+        trackingUrl.value = claimToken == null
+            ? trackingUri.toString()
+            : 'https://odsc.gov.la/lo/q#c=${Uri.encodeComponent(claimToken)}';
         selectedServiceId.value = serviceId;
         selectedServiceName.value = serviceName;
         currentStep.value = 9; // Jump to result step
@@ -833,7 +844,9 @@ class KioskController extends GetxController {
               ),
               delay: const Duration(milliseconds: 100),
               context: Get.context,
-              pixelRatio: 3.0, // Increased for sharper thermal printing
+              // Capture the 400-wide ticket at the printer's 512-dot width
+              // so QR edges are not rescaled after capture.
+              pixelRatio: 512 / 400,
             );
 
         if (imageBytes != null) {

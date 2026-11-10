@@ -19,6 +19,7 @@ const Map<String, String> kioskLo = {
 
   'step.purpose.title': 'ພົວພັນເລື່ອງ',
   'step.purpose.subtitle': 'ກະລຸນາເລືອກຈຸດປະສົງການມາໃນຄັ້ງນີ້',
+  'step.purpose.choose_service': 'ເລືອກບໍລິການ',
 
   // Ticket choice (step 13, right after the welcome button)
   'step.ticket_choice.title': 'ກະລຸນາເລືອກ',
@@ -79,7 +80,7 @@ const Map<String, String> kioskLo = {
   'result.subtitle': 'ກະລຸນາຮັບບັດຄິວຂອງທ່ານ',
   'result.subtitle.photo': 'ກະລຸນາຖ່າຍຮູບ ຫຼື ສະແກນ QR ໂຄດນີ້',
   'result.your_ticket': 'ບັດຄິວຂອງທ່ານ',
-  'result.scan_to_track': 'ສະແກນເພື່ອປ້ອນຂໍ້ມູນລ່ວງໜ້າເພື່ອຄວາມໄວ',
+  'result.scan_to_track': 'ສະແກນເພື່ອກອກຂໍ້ມູນລ່ວງໜ້າ',
   'result.scan_to_track_en': '(Scan to Track Status)',
   'result.back_to_home': 'ບັດຄິວຕໍ່ໄປ',
   'result.auto_return': 'ລະບົບຈະກັບຄືນສູ່ໜ້າຫຼັກອັດຕະໂນມັດພາຍໃນ',
@@ -111,6 +112,7 @@ const Map<String, String> kioskEn = {
 
   'step.purpose.title': 'Purpose',
   'step.purpose.subtitle': 'Please select the purpose of your visit',
+  'step.purpose.choose_service': 'Choose a service at this center',
 
   'step.ticket_choice.title': 'Please choose',
   'step.ticket_choice.quick': 'Get ticket',
