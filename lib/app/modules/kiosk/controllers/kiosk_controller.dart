@@ -255,6 +255,10 @@ class KioskController extends GetxController {
   final RxString ageRange = "".obs;
   final RxBool isDisabled = false.obs;
   final RxString visitPurpose = "".obs;
+  // True while on the ຮັບບັດຄິວ path (gender → disability → ticket) rather
+  // than the full ສະໜອງຂໍ້ມູນ wizard.
+  final RxBool isQuickTicket = false.obs;
+  bool _isIssuingQuickTicket = false;
   final RxString selectedServiceId = "".obs;
   final RxString selectedServiceName = "".obs;
   final RxString queueNumber = "".obs;
@@ -608,6 +612,21 @@ class KioskController extends GetxController {
   }
 
   void nextStep() {
+    // ຮັບບັດຄິວ path: gender (2) → disability (5) → issue the ticket.
+    if (isQuickTicket.value) {
+      if (currentStep.value == 2) {
+        currentStep.value = 5;
+      } else if (currentStep.value == 5 && !_isIssuingQuickTicket) {
+        // Guards against a double tap issuing two tickets. Not isLoading:
+        // that is shared with the services fetch and would swallow the tap.
+        _isIssuingQuickTicket = true;
+        visitPurpose.value = 'INQUIRY';
+        submitBooking('', 'purpose.inquiry'.tr)
+            .whenComplete(() => _isIssuingQuickTicket = false);
+      }
+      return;
+    }
+
     if (currentStep.value < 9) {
       // Logic for skipping service selection if already selected from Directory (Step 10)
       if (currentStep.value == 6 && selectedServiceId.value.isNotEmpty) {
@@ -630,19 +649,32 @@ class KioskController extends GetxController {
     currentStep.value = 13;
   }
 
-  // "ຮັບບັດຄິວ" on the ticket choice: issue a ticket straight away, without
-  // asking for any personal info. Clears anything left over from a citizen
-  // who started "ສະໜອງຂໍ້ມູນ" and came back, so submitBooking() falls back
-  // to its unspecified defaults.
+  // "ຮັບບັດຄິວ" on the ticket choice: asks only gender → disability, then
+  // nextStep() issues the ticket. The answers are stored on the queue so the
+  // online pre-fill form can fill them in. Clears anything left over from a
+  // citizen who started "ສະໜອງຂໍ້ມູນ" and came back, so age/ethnicity fall
+  // back to submitBooking()'s unspecified defaults.
   void issueQuickTicket() {
+    _clearAnswers();
+    isQuickTicket.value = true;
+    currentStep.value = 2;
+  }
+
+  // "ສະໜອງຂໍ້ມູນ" on the ticket choice: the full gender → … → service flow.
+  void startProvideInfo() {
+    _clearAnswers();
+    isQuickTicket.value = false;
+    currentStep.value = 2;
+  }
+
+  void _clearAnswers() {
     gender.value = "";
     ethnicity.value = "";
     ageRange.value = "";
     isDisabled.value = false;
+    visitPurpose.value = "";
     selectedServiceId.value = "";
     selectedServiceName.value = "";
-    visitPurpose.value = 'INQUIRY';
-    submitBooking('', 'purpose.inquiry'.tr);
   }
 
   void prevStep() {
@@ -655,9 +687,12 @@ class KioskController extends GetxController {
         // the ticket choice, reset to welcome
         resetBooking();
       } else if (currentStep.value == 2) {
-        // Gender is the first "ສະໜອງຂໍ້ມູນ" step — back returns to the
-        // ticket choice, not straight to welcome.
-        currentStep.value = 13;
+        // Gender is now the first step after the welcome button, so back
+        // returns to welcome.
+        resetBooking();
+      } else if (isQuickTicket.value && currentStep.value == 5) {
+        // ຮັບບັດຄິວ skips age/ethnicity, so disability goes back to gender.
+        currentStep.value = 2;
       } else {
         currentStep.value--;
       }
@@ -666,6 +701,7 @@ class KioskController extends GetxController {
 
   void resetBooking() {
     currentStep.value = 1;
+    isQuickTicket.value = false;
     gender.value = "";
     ethnicity.value = "";
     ageRange.value = "";

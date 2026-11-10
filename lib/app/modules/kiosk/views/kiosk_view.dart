@@ -65,15 +65,18 @@ class KioskView extends GetView<KioskController> {
             Obx(() {
               final step = controller.currentStep.value;
               if (step > 1 && step < 8) {
+                // ຮັບບັດຄິວ only visits gender (2) and disability (5).
+                final dotSteps = controller.isQuickTicket.value
+                    ? const [2, 5]
+                    : const [1, 2, 3, 4, 5, 6, 7, 8];
                 return Positioned(
                   bottom: 40,
                   left: 0,
                   right: 0,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(8, (index) {
-                      int step = index + 1;
-                      bool isActive = step == controller.currentStep.value;
+                    children: List.generate(dotSteps.length, (index) {
+                      bool isActive = dotSteps[index] == step;
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -345,14 +348,16 @@ class KioskView extends GetView<KioskController> {
           label: 'welcome.queue_button'.tr,
           icon: Icons.touch_app_rounded,
           color: ColorConstants.mainCorlor,
-          onTap: controller.goToTicketChoice,
+          // Straight into gender → disability → ticket. The ticket-choice
+          // step (13) is no longer reachable from here.
+          onTap: controller.issueQuickTicket,
           size: 440,
         ),
       ),
     );
   }
 
-  // Step 13: ຮັບບັດຄິວ issues a ticket immediately (no personal info);
+  // Step 13: ຮັບບັດຄິວ asks gender → disability, then issues the ticket;
   // ສະໜອງຂໍ້ມູນ runs the full gender → … → purpose flow starting at step 2.
   Widget _buildTicketChoiceStep() {
     return _buildStepContainer(
@@ -385,7 +390,7 @@ class KioskView extends GetView<KioskController> {
                 color: const Color(0xFFEC612C), // brand orange
                 outlined: true,
                 gifAsset: 'assets/images/checklist-add-vector.gif',
-                onTap: () => controller.currentStep.value = 2,
+                onTap: controller.startProvideInfo,
                 // 25% smaller than the ຮັບບັດຄິວ card so the quick ticket is
                 // the obvious primary action.
                 scale: 1.485 * 0.75,
