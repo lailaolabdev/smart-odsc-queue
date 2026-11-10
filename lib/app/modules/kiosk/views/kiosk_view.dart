@@ -3712,6 +3712,14 @@ class _TintedGif extends StatelessWidget {
   }
 
   Widget _tinted(BuildContext context) {
+    // The matrix turns transparent pixels (R = 0) into opaque white. Skia
+    // only filters the image's own pixels, but Impeller (Android) filters the
+    // whole layer, which painted the entire welcome card white. ClipRect
+    // bounds the layer to the image so only the GIF itself is filtered.
+    return ClipRect(child: _filtered(context));
+  }
+
+  Widget _filtered(BuildContext context) {
     return ColorFiltered(
       colorFilter: ColorFilter.matrix([
         0, 0, 0, 0, color.r * 255, //

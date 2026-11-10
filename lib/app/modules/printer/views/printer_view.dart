@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:smart_odsc_queue/app/data/api_helper/api_service.dart';
 import 'package:smart_odsc_queue/app/modules/kiosk/controllers/kiosk_controller.dart';
 import 'package:smart_odsc_queue/app/shared/constants/app_constants.dart';
@@ -226,8 +227,37 @@ class PrinterView extends GetView<PrinterController> {
               );
             }),
           ),
+          // App version, bottom centre — lets staff tell which build is
+          // installed on a kiosk without opening Android settings.
+          const SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: _AppVersionLabel(),
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _AppVersionLabel extends StatelessWidget {
+  const _AppVersionLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox(height: 22);
+        final info = snapshot.data!;
+        return Text(
+          'v${info.version} (${info.buildNumber})',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+        );
+      },
     );
   }
 }
