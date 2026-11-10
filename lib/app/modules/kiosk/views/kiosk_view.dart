@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -343,16 +345,31 @@ class KioskView extends GetView<KioskController> {
       // (feedback + service-directory entry points removed per request).
       // A single centered hero button makes the one thing to do
       // unmistakable.
-      child: Center(
-        child: _buildShimmerWelcomeButton(
-          label: 'welcome.queue_button'.tr,
-          icon: Icons.touch_app_rounded,
-          color: ColorConstants.mainCorlor,
-          // Straight into gender → disability → ticket. The ticket-choice
-          // step (13) is no longer reachable from here.
-          onTap: controller.issueQuickTicket,
-          size: 440,
-        ),
+      // Fill the space left under the title so the button can size itself
+      // to it — a fixed 440 was cut off at the bottom on shorter Android
+      // tablet screens.
+      isScrollable: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Leave room for the 3% pulse and the drop shadow (offset 20,
+          // blur 40) so neither is clipped either.
+          final fit = math.min(
+            constraints.maxWidth,
+            constraints.maxHeight - 60,
+          );
+          final size = fit.clamp(200.0, 440.0);
+          return Center(
+            child: _buildShimmerWelcomeButton(
+              label: 'welcome.queue_button'.tr,
+              icon: Icons.touch_app_rounded,
+              color: ColorConstants.mainCorlor,
+              // Straight into gender → disability → ticket. The
+              // ticket-choice step (13) is no longer reachable from here.
+              onTap: controller.issueQuickTicket,
+              size: size,
+            ),
+          );
+        },
       ),
     );
   }
