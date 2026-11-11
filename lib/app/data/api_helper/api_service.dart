@@ -156,8 +156,16 @@ class HelpersApi {
     try {
       await _checkAndRefreshToken();
       final uri = Uri.parse('${ApiEndpoints.baseUrl}$endpoint').replace(
+        // Iterable values are kept as multiple entries so the query string
+        // repeats the key (e.g. organizationId=a&organizationId=b) — which
+        // the backend's zod array schemas expect. Scalars are stringified.
         queryParameters: queryParameters?.map(
-          (key, value) => MapEntry(key, value.toString()),
+          (key, value) => MapEntry<String, dynamic>(
+            key,
+            value is Iterable
+                ? value.map((v) => v.toString()).toList()
+                : value.toString(),
+          ),
         ),
       );
       final response = await _client.get(uri, headers: _baseHeaders);

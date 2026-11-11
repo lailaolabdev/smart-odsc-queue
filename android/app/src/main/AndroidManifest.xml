@@ -1,22 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission
+        android:name="android.permission.INTERNET"/>
+    <uses-permission
+        android:name="android.permission.CAMERA"/>
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- Force-update flow: lets ota_update fire the system PackageInstaller
          dialog. Without this, Android 8+ silently refuses the install
          intent for "unknown sources" even after the user enabled it
          system-wide. -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <!-- ota_update writes the in-flight APK to internal storage on
          Android 10+; on older API levels it falls back to external
          storage and needs this permission. -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-                     android:maxSdkVersion="28"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
     <application
         android:label="ODSC Queue"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon"
-        >
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,9 +36,8 @@
                  while the Flutter UI initializes. After that, this theme continues
                  to determine the Window background behind the Flutter UI. -->
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -44,8 +47,7 @@
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2" />
-
+            android:value="2"/>
         <!-- ota_update: FileProvider used to hand the downloaded APK to
              Android's PackageInstaller. The authority MUST match the
              value referenced internally by the plugin
@@ -57,15 +59,15 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
+                android:resource="@xml/filepaths"/>
         </provider>
-
         <!-- Receives the install-result callback from PackageInstaller. -->
         <receiver
             android:name="sk.fourq.otaupdate.InstallResultReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="${applicationId}.ACTION_INSTALL_COMPLETE"/>
+                <action
+                    android:name="${applicationId}.ACTION_INSTALL_COMPLETE"/>
             </intent-filter>
         </receiver>
     </application>
@@ -76,8 +78,10 @@
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
         <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
+            <action
+                android:name="android.intent.action.PROCESS_TEXT"/>
+            <data
+                android:mimeType="text/plain"/>
         </intent>
     </queries>
 </manifest>

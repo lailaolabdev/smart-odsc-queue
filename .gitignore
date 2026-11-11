@@ -45,8 +45,7 @@ app.*.map.json
 /android/app/release
 
 # Ignore large APKs and Flutter asset blobs
-android/app/build/outputs/apk/
-android/app/build/intermediates/assets/
+/android/app/build/
 *.apk
 *.bin
 

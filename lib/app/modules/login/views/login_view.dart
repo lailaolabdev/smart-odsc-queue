@@ -129,14 +129,6 @@ class LoginView extends GetView<LoginController> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'admin.login.brand.subtitle'.tr,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.white70,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -165,10 +157,7 @@ class _AppVersionLabel extends StatelessWidget {
         return Text(
           'v${info.version} (${info.buildNumber})',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade500,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         );
       },
     );

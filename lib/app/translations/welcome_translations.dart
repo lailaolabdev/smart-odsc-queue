@@ -5,7 +5,8 @@
 // [AppTranslations.keys] without collision.
 const Map<String, String> welcomeLo = {
   'welcome.title': 'Smart ODSC',
-  'welcome.subtitle': 'ຍິນດີຕ້ອນຮັບສູ່ ບໍລິການປະຕູດຽວຂອງລັດຖະບານ ສປປ ລາວ',
+  'welcome.subtitle':
+      'ຍິນດີຕ້ອນຮັບເຂົ້າສູ່ ສູນບໍລິການຜ່ານປະຕູດຽວແບບທັນສະໄໝ',
   'welcome.queue_button': 'ກົດບັດຄິວ',
   'welcome.feedback_button': 'ຄຳຕິຊົມ',
   'welcome.directory_button': 'ລາຍການບໍລິການ',
@@ -81,7 +82,7 @@ const Map<String, String> welcomeLo = {
 const Map<String, String> welcomeEn = {
   'welcome.title': 'Smart ODSC',
   'welcome.subtitle':
-      'Welcome to the One-Door Service Centre, Government of Lao PDR',
+      'Welcome to the modern One-Stop Service Center information management system',
   'welcome.queue_button': 'Get Queue Ticket',
   'welcome.feedback_button': 'Give Feedback',
   'welcome.directory_button': 'Other Services',
