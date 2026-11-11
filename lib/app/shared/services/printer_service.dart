@@ -146,7 +146,13 @@ class PrinterService extends GetxService {
 
       // 2. ปรับขนาดภาพให้พอดีกับหน้ากระดาษ (80mm ประมาณ 512 pixels สำหรับ Raster)
       // ถ้าไม่ปรับขนาด เครื่องจะอ่านตำแหน่งจุดผิดและพิมพ์เละ
-      final img.Image resizedImage = img.copyResize(oriImage, width: 512);
+      final img.Image resizedImage = oriImage.width == 512
+          ? oriImage
+          : img.copyResize(
+              oriImage,
+              width: 512,
+              interpolation: img.Interpolation.nearest,
+            );
 
       // 3. เตรียม Generator สำหรับสร้างคำสั่งภาษาเครื่อง (ESC/POS)
       // โหลด CapabilityProfile (ส่วนใหญ่ใช้ default)

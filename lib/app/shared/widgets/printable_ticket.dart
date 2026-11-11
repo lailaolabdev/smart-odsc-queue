@@ -120,13 +120,10 @@ class PrintableTicket extends StatelessWidget {
 
             const Divider(color: Colors.black, thickness: 1.5, height: 30),
 
-            // Main Row: Queue Number and QR Code side-by-side
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Left Side: Queue Number
                 Expanded(
-                  flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -137,27 +134,31 @@ class PrintableTicket extends StatelessWidget {
                           color: Colors.black,
                         ),
                       ),
-                      Text(
-                        queueNumber,
-                        style: const TextStyle(
-                          fontSize: 120,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                          height: 1.0,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          queueNumber,
+                          style: const TextStyle(
+                            fontSize: 120,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            height: 1.0,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // Right Side: QR Code (Enlarged for scannability)
-                if (qrCodeData != null && qrCodeData!.isNotEmpty)
-                  Expanded(
-                    flex: 2,
+                if (qrCodeData != null && qrCodeData!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 150,
                     child: Column(
                       children: [
                         Text(
                           'ticket.scan_to_track'.tr,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black,
@@ -170,36 +171,41 @@ class PrintableTicket extends StatelessWidget {
                           child: BarcodeWidget(
                             barcode: Barcode.qrCode(),
                             data: qrCodeData!,
-                            width: 140, // Increased size for thermal printers
+                            width: 140,
                             height: 140,
                           ),
                         ),
                       ],
                     ),
                   ),
+                ],
               ],
             ),
 
             const SizedBox(height: 15),
 
-            // Service Name - Clean and Bold
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                serviceName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            if (serviceName.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 12,
                 ),
-                textAlign: TextAlign.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "${'ticket.service_label'.tr}: $serviceName",
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+            ],
 
             // Ethnicity row (only when value provided)
             if (ethnicity != null && ethnicity!.isNotEmpty) ...[
