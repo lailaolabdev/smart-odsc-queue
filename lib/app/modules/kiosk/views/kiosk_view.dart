@@ -494,64 +494,68 @@ class KioskView extends GetView<KioskController> {
     required VoidCallback onTap,
   }) {
     const Color slate = Color(0xFF455C91);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        splashColor: accent.withOpacity(0.12),
-        highlightColor: accent.withOpacity(0.06),
-        child: Ink(
-          width: 300,
-          // 543 = the age step's block height (3 rows x 157 + 2 x 36 gap),
-          // so every choice step runs the same distance down the page.
-          height: 543,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: slate.withOpacity(0.10), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: slate.withOpacity(0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [accent.withOpacity(0.85), accent],
-                    radius: 0.75,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withOpacity(0.35),
-                      blurRadius: 28,
-                      offset: const Offset(0, 14),
+    return _InstantTap(
+      onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          // Fires from _InstantTap on touch-down; kept for the splash only.
+          onTap: () {},
+          borderRadius: BorderRadius.circular(28),
+          splashColor: accent.withOpacity(0.12),
+          highlightColor: accent.withOpacity(0.06),
+          child: Ink(
+            width: 300,
+            // 543 = the age step's block height (3 rows x 157 + 2 x 36 gap),
+            // so every choice step runs the same distance down the page.
+            height: 543,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: slate.withOpacity(0.10), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: slate.withOpacity(0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [accent.withOpacity(0.85), accent],
+                      radius: 0.75,
                     ),
-                  ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: accent.withOpacity(0.35),
+                        blurRadius: 28,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, size: 88, color: Colors.white),
                 ),
-                child: Icon(icon, size: 88, color: Colors.white),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.w900,
-                  color: slate,
-                  letterSpacing: -0.5,
+                const SizedBox(height: 32),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                    color: slate,
+                    letterSpacing: -0.5,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -688,71 +692,75 @@ class KioskView extends GetView<KioskController> {
     required VoidCallback onTap,
   }) {
     const Color slate = Color(0xFF455C91);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        splashColor: color.withOpacity(0.12),
-        highlightColor: color.withOpacity(0.06),
-        child: Ink(
-          // Fixed width AND height so both cards are identical regardless
-          // of label length. Sized wide/tall enough for the longest label
-          // (the "yes" option is a full sentence) to fit on up to 3 lines
-          // without ellipsis. Content is centred vertically.
-          width: 480,
-          // Matches the age step's block height (see _buildChoiceTile).
-          height: 543,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: slate.withOpacity(0.10), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: slate.withOpacity(0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 220,
-                  height: 220,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [color.withOpacity(0.85), color],
-                      radius: 0.75,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.35),
-                        blurRadius: 32,
-                        offset: const Offset(0, 16),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, size: 120, color: Colors.white),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w800,
-                    color: slate,
-                    height: 1.25,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+    return _InstantTap(
+      onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          // Fires from _InstantTap on touch-down; kept for the splash only.
+          onTap: () {},
+          borderRadius: BorderRadius.circular(28),
+          splashColor: color.withOpacity(0.12),
+          highlightColor: color.withOpacity(0.06),
+          child: Ink(
+            // Fixed width AND height so both cards are identical regardless
+            // of label length. Sized wide/tall enough for the longest label
+            // (the "yes" option is a full sentence) to fit on up to 3 lines
+            // without ellipsis. Content is centred vertically.
+            width: 480,
+            // Matches the age step's block height (see _buildChoiceTile).
+            height: 543,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: slate.withOpacity(0.10), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: slate.withOpacity(0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 220,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [color.withOpacity(0.85), color],
+                        radius: 0.75,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.35),
+                          blurRadius: 32,
+                          offset: const Offset(0, 16),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, size: 120, color: Colors.white),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w800,
+                      color: slate,
+                      height: 1.25,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -2450,6 +2458,39 @@ class KioskView extends GetView<KioskController> {
   }
 }
 
+/// Fires [onTap] the moment a finger touches down, instead of on release.
+///
+/// Older visitors often press and hold, or press and slide. A normal tap
+/// (InkWell / GestureDetector onTap) is cancelled once the finger moves
+/// past the touch slop or another gesture claims it, so those presses did
+/// nothing. A raw pointer-down cannot be cancelled that way.
+class _InstantTap extends StatelessWidget {
+  const _InstantTap({required this.onTap, required this.child});
+
+  final VoidCallback onTap;
+  final Widget child;
+
+  // Shared by every instant-tap target: a touch within [_cooldown] of the
+  // previous one is ignored, so a double tap on one screen does not also
+  // pick whatever option appears under the finger on the next screen.
+  static DateTime _lastFired = DateTime.fromMillisecondsSinceEpoch(0);
+  static const Duration _cooldown = Duration(milliseconds: 700);
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (_) {
+        final now = DateTime.now();
+        if (now.difference(_lastFired) < _cooldown) return;
+        _lastFired = now;
+        onTap();
+      },
+      child: child,
+    );
+  }
+}
+
 /// Compact gradient pill placed INSIDE the search field as its
 /// suffix — so the field reads as one visual unit: "[ field with
 /// built-in search action ]". Padding and font sizes are tuned to
@@ -2549,89 +2590,94 @@ class _ShimmerButtonState extends State<_ShimmerButton>
 
         return Transform.scale(
           scale: scale,
-          child: InkWell(
+          child: _InstantTap(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(40),
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                color: widget.color,
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.color.withOpacity(0.4),
-                    blurRadius: 40,
-                    offset: const Offset(0, 20),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(40),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Animated tapping hand.
-                          _TintedGif(
-                            asset: 'assets/images/tap-hand-click-hd.gif',
-                            height: widget.size * 0.4,
-                            fallbackIcon: widget.icon,
-                            fallbackSize: widget.size * 0.34,
-                          ),
-                          SizedBox(height: widget.size * 0.07),
-                          Text(
-                            widget.label,
-                            style: TextStyle(
-                              fontSize: widget.size * 0.11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
+            child: InkWell(
+              // The action fires from _InstantTap on touch-down; this no-op
+              // only keeps the InkWell splash as press feedback.
+              onTap: () {},
+              borderRadius: BorderRadius.circular(40),
+              child: Container(
+                width: widget.size,
+                height: widget.size,
+                decoration: BoxDecoration(
+                  color: widget.color,
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.color.withOpacity(0.4),
+                      blurRadius: 40,
+                      offset: const Offset(0, 20),
                     ),
-                    // Shimmer Light Effect (Sharper for metallic look).
-                    // Painted as a plain gradient fill rather than a
-                    // ShaderMask over a transparent box: Impeller (Android)
-                    // culls a mask whose child draws nothing, so the sweep
-                    // never showed on the tablet.
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment(-1.0 + value, -1.0),
-                              end: Alignment(1.0 + value, 1.0),
-                              colors: [
-                                Colors.transparent,
-                                Colors.white.withOpacity(0.0),
-                                Colors.white.withOpacity(0.1),
-                                Colors.white.withOpacity(
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(40),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Animated tapping hand.
+                            _TintedGif(
+                              asset: 'assets/images/tap-hand-click-hd.gif',
+                              height: widget.size * 0.4,
+                              fallbackIcon: widget.icon,
+                              fallbackSize: widget.size * 0.34,
+                            ),
+                            SizedBox(height: widget.size * 0.07),
+                            Text(
+                              widget.label,
+                              style: TextStyle(
+                                fontSize: widget.size * 0.11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Shimmer Light Effect (Sharper for metallic look).
+                      // Painted as a plain gradient fill rather than a
+                      // ShaderMask over a transparent box: Impeller (Android)
+                      // culls a mask whose child draws nothing, so the sweep
+                      // never showed on the tablet.
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment(-1.0 + value, -1.0),
+                                end: Alignment(1.0 + value, 1.0),
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.white.withOpacity(0.0),
+                                  Colors.white.withOpacity(0.1),
+                                  Colors.white.withOpacity(
+                                    0.6,
+                                  ), // Brighter center
+                                  Colors.white.withOpacity(0.1),
+                                  Colors.white.withOpacity(0.0),
+                                  Colors.transparent,
+                                ],
+                                stops: const [
+                                  0.0,
+                                  0.4,
+                                  0.45,
+                                  0.5,
+                                  0.55,
                                   0.6,
-                                ), // Brighter center
-                                Colors.white.withOpacity(0.1),
-                                Colors.white.withOpacity(0.0),
-                                Colors.transparent,
-                              ],
-                              stops: const [
-                                0.0,
-                                0.4,
-                                0.45,
-                                0.5,
-                                0.55,
-                                0.6,
-                                1.0,
-                              ],
+                                  1.0,
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
