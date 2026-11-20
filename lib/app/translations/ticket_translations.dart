@@ -8,6 +8,8 @@ const Map<String, String> ticketLo = {
   'ticket.scan_to_track': 'Scan to Track', // intentionally English on print
   'ticket.ethnicity': 'ຊົນເຜົ່າ',
   'ticket.please_wait': 'ກະລຸນາລໍຖ້າການຮຽກຄິວ',
+  'ticket.full_name': 'ຊື່ ແລະ ນາມສະກຸນ',
+  'ticket.phone': 'ເບີໂທ',
 };
 
 const Map<String, String> ticketEn = {
@@ -17,4 +19,6 @@ const Map<String, String> ticketEn = {
   'ticket.scan_to_track': 'Scan to Track',
   'ticket.ethnicity': 'Ethnicity',
   'ticket.please_wait': 'Please wait to be called',
+  'ticket.full_name': 'Full name',
+  'ticket.phone': 'Phone',
 };

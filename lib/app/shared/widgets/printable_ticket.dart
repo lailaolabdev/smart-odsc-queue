@@ -15,6 +15,10 @@ class PrintableTicket extends StatelessWidget {
   final String? qrCodeData;
   final String? ethnicity;
 
+  /// The second copy, stapled to the citizen's documents: same ticket but
+  /// without the QR, plus blank lines to hand-write name and phone.
+  final bool forDocuments;
+
   const PrintableTicket({
     super.key,
     required this.queueNumber,
@@ -22,7 +26,34 @@ class PrintableTicket extends StatelessWidget {
     this.barCodeNumber,
     this.qrCodeData,
     this.ethnicity,
+    this.forDocuments = false,
   });
+
+  Widget _writeInLine(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            '$label:',
+            style: const TextStyle(fontSize: 18, color: Colors.black),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+              height: 30,
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.black, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// Maps the canonical enum value (LAO / KHMU / HMONG / OTHER) to a
   /// printable label using the *current* locale.
@@ -151,7 +182,9 @@ class PrintableTicket extends StatelessWidget {
                 ),
 
                 // Right Side: QR Code (Enlarged for scannability)
-                if (qrCodeData != null && qrCodeData!.isNotEmpty)
+                if (!forDocuments &&
+                    qrCodeData != null &&
+                    qrCodeData!.isNotEmpty)
                   Expanded(
                     flex: 2,
                     child: Column(
@@ -221,6 +254,12 @@ class PrintableTicket extends StatelessWidget {
                   ),
                 ],
               ),
+            ],
+
+            if (forDocuments) ...[
+              const SizedBox(height: 6),
+              _writeInLine('ticket.full_name'.tr),
+              _writeInLine('ticket.phone'.tr),
             ],
 
             const SizedBox(height: 25),
