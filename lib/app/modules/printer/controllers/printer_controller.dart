@@ -6,6 +6,8 @@ import 'package:screenshot/screenshot.dart';
 import 'package:smart_odsc_queue/app/shared/services/printer_service.dart';
 import 'package:smart_odsc_queue/app/shared/utils/logger.dart';
 import 'package:smart_odsc_queue/app/shared/widgets/custom_dialog.dart';
+import 'package:smart_odsc_queue/app/shared/widgets/update_dialog.dart';
+import 'package:smart_odsc_queue/app/data/services/app_version_service.dart';
 
 /// Hidden printer-pair screen, reached via the 5-tap admin gesture on
 /// the kiosk welcome step. Pure setup — no auth, no skip; user picks a
@@ -21,10 +23,38 @@ class PrinterController extends GetxController {
   BluetoothDevice? get selectedDevice => _printerService.selectedDevice.value;
   bool get isConnected => _printerService.isConnected.value;
 
+  // App update check. Lives on this staff-only page (not the kiosk) so a
+  // citizen taking a ticket is never interrupted by an update offer.
+  final RxBool isCheckingVersion = false.obs;
+  final RxBool updateAvailable = false.obs;
+
   @override
   void onInit() {
     super.onInit();
     loadPairedPrinters();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Offer a newer build as soon as staff open this page.
+    checkForUpdate(manual: false);
+  }
+
+  /// [manual] = staff pressed the button: also report "up to date" or a
+  /// failed check. The automatic check on open only speaks up when there
+  /// is something to install.
+  Future<void> checkForUpdate({bool manual = true}) async {
+    if (isCheckingVersion.value) return;
+    isCheckingVersion.value = true;
+    final AppVersionResult result;
+    try {
+      result = await AppVersionService.instance.check();
+    } finally {
+      isCheckingVersion.value = false;
+    }
+    updateAvailable.value = result.status == AppVersionStatus.updateAvailable;
+    await showVersionCheckResult(result, reportUpToDate: manual);
   }
 
   Future<void> loadPairedPrinters() async {

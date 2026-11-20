@@ -76,6 +76,31 @@ class PrinterView extends GetView<PrinterController> {
           onPressed: () => Get.offAllNamed('/kiosk'),
         ),
         actions: [
+          // Check for an app update; red dot while a newer build is out.
+          Obx(() {
+            if (controller.isCheckingVersion.value) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14),
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            }
+            return IconButton(
+              icon: Badge(
+                isLabelVisible: controller.updateAvailable.value,
+                smallSize: 10,
+                child: const Icon(Icons.system_update),
+              ),
+              onPressed: controller.checkForUpdate,
+              tooltip: 'update_prompt.check'.tr,
+            );
+          }),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: controller.loadPairedPrinters,

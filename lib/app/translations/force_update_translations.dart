@@ -7,6 +7,16 @@
 
 const Map<String, String> forceUpdateLo = {
   'force_update.title': 'ມີຄຳ ປັບປຸງ ໃໝ່',
+  'force_update.later': 'ພາຍຫຼັງ',
+  'force_update.cancel': 'ຍົກເລີກ',
+  'update_prompt.title': 'ມີ version ໃໝ່',
+  'update_prompt.body': 'ອັບເດດແອັບເພື່ອໃຊ້ງານຄຸນສົມບັດໃໝ່',
+  'update_prompt.now': 'ອັບເດດດຽວນີ້',
+  'update_prompt.later': 'ພາຍຫຼັງ',
+  'update_prompt.check': 'ກວດອັບເດດ',
+  'update_prompt.latest': 'ເປັນ version ລ່າສຸດແລ້ວ',
+  'update_prompt.check_failed': 'ກວດ version ບໍ່ໄດ້',
+  'update_prompt.check_failed_hint': 'ກະລຸນາກວດການເຊື່ອມຕໍ່ອິນເຕີເນັດ ແລ້ວລອງໃໝ່',
   'force_update.subtitle': 'ກະລຸນາອັບເດດແອັບເພື່ອໃຊ້ງານຕໍ່',
   'force_update.cta': 'ອັບເດດດຽວນີ້',
   'force_update.retry': 'ລອງໃໝ່',
@@ -23,6 +33,16 @@ const Map<String, String> forceUpdateLo = {
 
 const Map<String, String> forceUpdateEn = {
   'force_update.title': 'Update Required',
+  'force_update.later': 'Later',
+  'force_update.cancel': 'Cancel',
+  'update_prompt.title': 'New version available',
+  'update_prompt.body': 'Update the app to get the latest features',
+  'update_prompt.now': 'Update now',
+  'update_prompt.later': 'Later',
+  'update_prompt.check': 'Check for updates',
+  'update_prompt.latest': 'You have the latest version',
+  'update_prompt.check_failed': "Couldn't check the version",
+  'update_prompt.check_failed_hint': 'Check the internet connection and try again',
   'force_update.subtitle': 'Please update the app to continue',
   'force_update.cta': 'Update Now',
   'force_update.retry': 'Try Again',
