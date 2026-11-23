@@ -8,7 +8,9 @@ const Map<String, String> ticketLo = {
   'ticket.service_label': 'ບໍລິການ',
   'ticket.scan_to_track': 'ສະແກນເພື່ອປ້ອນຂໍ້ມູນລ່ວງໜ້າ',
   'ticket.ethnicity': 'ຊົນເຜົ່າ',
-  'ticket.please_wait': 'ກະລຸນາລໍຖ້າການເອີ້ນຄິວ',
+  'ticket.please_wait': 'ກະລຸນາລໍຖ້າການຮຽກຄິວ',
+  'ticket.full_name': 'ຊື່ ແລະ ນາມສະກຸນ',
+  'ticket.phone': 'ເບີໂທ',
 };
 
 const Map<String, String> ticketEn = {
@@ -19,4 +21,6 @@ const Map<String, String> ticketEn = {
   'ticket.scan_to_track': 'Scan to Track',
   'ticket.ethnicity': 'Ethnicity',
   'ticket.please_wait': 'Please wait to be called',
+  'ticket.full_name': 'Full name',
+  'ticket.phone': 'Phone',
 };

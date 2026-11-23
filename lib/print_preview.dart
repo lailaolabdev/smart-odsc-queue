@@ -71,6 +71,8 @@ class _PrintPreviewPageState extends State<PrintPreviewPage> {
 
   bool _production = true;
   bool _thermal = true;
+  // Repo code only: the second copy stapled to documents (no QR).
+  bool _forDocuments = false;
   // On-screen width of the whole 80mm paper strip.
   double _paperWidth = 500;
 
@@ -80,11 +82,12 @@ class _PrintPreviewPageState extends State<PrintPreviewPage> {
           serviceName: 'ສອບຖາມຂໍ້ມູນ',
           qrCodeData: _productionUrl,
         )
-      : const PrintableTicket(
+      : PrintableTicket(
           queueNumber: '034',
           serviceName: 'ສອບຖາມຂໍ້ມູນ',
           qrCodeData: _repoUrl,
           ethnicity: 'LAO',
+          forDocuments: _forDocuments,
         );
 
   @override
@@ -189,6 +192,17 @@ class _PrintPreviewPageState extends State<PrintPreviewPage> {
                   selected: {_production},
                   onSelectionChanged: (s) {
                     setState(() => _production = s.first);
+                    _renderPaper();
+                  },
+                ),
+                FilterChip(
+                  label: const Text('Document copy'),
+                  selected: _forDocuments,
+                  onSelected: (v) {
+                    setState(() {
+                      _forDocuments = v;
+                      _production = false;
+                    });
                     _renderPaper();
                   },
                 ),

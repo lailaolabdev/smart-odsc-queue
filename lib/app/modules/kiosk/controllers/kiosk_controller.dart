@@ -871,23 +871,25 @@ class KioskController extends GetxController {
     if (skipPrint.value) return;
     try {
       if (await printerService.bluetooth.isConnected ?? false) {
-        final Uint8List imageBytes = await screenshotController
-            .captureFromWidget(
-              PrintableTicket(
-                queueNumber: queueNumber.value,
-                serviceName: selectedServiceName.value,
-                barCodeNumber: barCodeNumber.value,
-                qrCodeData: trackingUrl.value,
-                ethnicity: ethnicity.value,
-              ),
-              delay: const Duration(milliseconds: 100),
-              context: Get.context,
-              // Capture the 400-wide ticket at the printer's 512-dot width
-              // so QR edges are not rescaled after capture.
-              pixelRatio: 512 / 400,
-            );
+        // Two cut tickets: the citizen keeps the first; the second (no QR,
+        // name/phone to hand-write) is stapled to their documents.
+        for (final forDocuments in [false, true]) {
+          final Uint8List imageBytes = await screenshotController
+              .captureFromWidget(
+                PrintableTicket(
+                  queueNumber: queueNumber.value,
+                  serviceName: selectedServiceName.value,
+                  barCodeNumber: barCodeNumber.value,
+                  qrCodeData: trackingUrl.value,
+                  ethnicity: ethnicity.value,
+                  forDocuments: forDocuments,
+                ),
+                delay: const Duration(milliseconds: 100),
+                context: Get.context,
+                // Match the printer's 512-dot width to keep QR edges sharp.
+                pixelRatio: 512 / 400,
+              );
 
-        if (imageBytes != null) {
           await printerService.printLaoTextAsImage(imageBytes);
         }
       }
