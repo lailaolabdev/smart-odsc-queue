@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../data/services/app_version_service.dart';
 import '../controllers/force_update_controller.dart';
 
-/// Non-dismissible blocker. The whole point of force-update is that the
+/// Update screen. For a forced update it is a non-dismissible blocker: the
 /// installed build can't safely keep talking to backend, so there is no
 /// back / cancel / dismiss path — only "update" and "retry on error".
+/// For an optional update (opened from the kiosk's update offer) a "Later"
+/// button returns to the kiosk while nothing is downloading.
 ///
 /// Update happens entirely in-app via [ota_update]: the button below
 /// streams a 0..100 progress, then hands the APK to Android's
@@ -20,6 +23,9 @@ class ForceUpdateView extends GetView<ForceUpdateController> {
     final releaseNotes = isEnglish
         ? controller.result.releaseNotesEn
         : controller.result.releaseNotesLo;
+
+    final optional =
+        controller.result.status == AppVersionStatus.updateAvailable;
 
     return PopScope(
       canPop: false,
@@ -109,6 +115,37 @@ class ForceUpdateView extends GetView<ForceUpdateController> {
                           phase: controller.phase.value,
                           errorMessage: controller.errorMessage.value,
                         )),
+                    // While downloading: "Cancel" stops it. Otherwise, for an
+                    // optional update: "Later" returns to the kiosk.
+                    Obx(() {
+                      final phase = controller.phase.value;
+                      final String label;
+                      final VoidCallback onPressed;
+                      if (phase == UpdatePhase.downloading) {
+                        label = 'force_update.cancel'.tr;
+                        onPressed = controller.cancelUpdate;
+                      } else if (optional &&
+                          (phase == UpdatePhase.idle ||
+                              phase == UpdatePhase.error)) {
+                        label = 'force_update.later'.tr;
+                        onPressed = Get.back;
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: TextButton(
+                          onPressed: onPressed,
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Color(0xFF2E5394),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),

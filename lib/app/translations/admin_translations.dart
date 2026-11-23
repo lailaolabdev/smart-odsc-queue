@@ -14,7 +14,6 @@ const Map<String, String> adminLo = {
   'admin.login.password': 'ລະຫັດຜ່ານ',
   'admin.login.submit': 'ເຂົ້າສູ່ລະບົບ',
   'admin.login.brand.title': 'ລະບົບ ການຈັດການຄິວ',
-  'admin.login.brand.subtitle': 'ກະຊວງ ພາຍໃນ',
 
   // Profile
   'admin.profile.title': 'ໂປຣໄຟລ໌',
@@ -31,7 +30,6 @@ const Map<String, String> adminEn = {
   'admin.login.password': 'Password',
   'admin.login.submit': 'Sign in',
   'admin.login.brand.title': 'Queue Management System',
-  'admin.login.brand.subtitle': 'Ministry of Interior',
 
   'admin.profile.title': 'Profile',
   'admin.profile.logout': 'Sign out',

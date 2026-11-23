@@ -15,6 +15,10 @@ class PrintableTicket extends StatelessWidget {
   final String? qrCodeData;
   final String? ethnicity;
 
+  /// The second copy, stapled to the citizen's documents: same ticket but
+  /// without the QR, plus blank lines to hand-write name and phone.
+  final bool forDocuments;
+
   const PrintableTicket({
     super.key,
     required this.queueNumber,
@@ -22,7 +26,34 @@ class PrintableTicket extends StatelessWidget {
     this.barCodeNumber,
     this.qrCodeData,
     this.ethnicity,
+    this.forDocuments = false,
   });
+
+  Widget _writeInLine(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            '$label:',
+            style: const TextStyle(fontSize: 18, color: Colors.black),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+              height: 30,
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.black, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// Maps the canonical enum value (LAO / KHMU / HMONG / OTHER) to a
   /// printable label using the *current* locale.
@@ -120,13 +151,10 @@ class PrintableTicket extends StatelessWidget {
 
             const Divider(color: Colors.black, thickness: 1.5, height: 30),
 
-            // Main Row: Queue Number and QR Code side-by-side
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Left Side: Queue Number
                 Expanded(
-                  flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -137,27 +165,34 @@ class PrintableTicket extends StatelessWidget {
                           color: Colors.black,
                         ),
                       ),
-                      Text(
-                        queueNumber,
-                        style: const TextStyle(
-                          fontSize: 120,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                          height: 1.0,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          queueNumber,
+                          style: const TextStyle(
+                            fontSize: 120,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            height: 1.0,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
+                if (!forDocuments &&
+                    qrCodeData != null &&
+                    qrCodeData!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 150,
 
-                // Right Side: QR Code (Enlarged for scannability)
-                if (qrCodeData != null && qrCodeData!.isNotEmpty)
-                  Expanded(
-                    flex: 2,
                     child: Column(
                       children: [
                         Text(
                           'ticket.scan_to_track'.tr,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black,
@@ -170,36 +205,41 @@ class PrintableTicket extends StatelessWidget {
                           child: BarcodeWidget(
                             barcode: Barcode.qrCode(),
                             data: qrCodeData!,
-                            width: 140, // Increased size for thermal printers
+                            width: 140,
                             height: 140,
                           ),
                         ),
                       ],
                     ),
                   ),
+                ],
               ],
             ),
 
             const SizedBox(height: 15),
 
-            // Service Name - Clean and Bold
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                serviceName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            if (serviceName.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 12,
                 ),
-                textAlign: TextAlign.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "${'ticket.service_label'.tr}: $serviceName",
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
+            ],
 
             // Ethnicity row (only when value provided)
             if (ethnicity != null && ethnicity!.isNotEmpty) ...[
@@ -221,6 +261,12 @@ class PrintableTicket extends StatelessWidget {
                   ),
                 ],
               ),
+            ],
+
+            if (forDocuments) ...[
+              const SizedBox(height: 6),
+              _writeInLine('ticket.full_name'.tr),
+              _writeInLine('ticket.phone'.tr),
             ],
 
             const SizedBox(height: 25),

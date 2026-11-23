@@ -43,6 +43,7 @@ class ApiEndpoints {
 
   // Services
   static const String services = '/api/v1/core/services';
+  static const String serviceTypesPublic = '/api/v1/core/service-types/public';
   static const String queues = '/api/v1/core/queues';
   static const String applications = '/api/v1/core/applications';
 
