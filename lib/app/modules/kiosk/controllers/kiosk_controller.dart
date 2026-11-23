@@ -612,17 +612,19 @@ class KioskController extends GetxController {
   }
 
   void nextStep() {
-    // ຮັບບັດຄິວ path: gender (2) → disability (5) → issue the ticket.
+    // Quick-ticket path: gender (2) → disability (4) → issue the ticket.
     if (isQuickTicket.value) {
       if (currentStep.value == 2) {
-        currentStep.value = 5;
-      } else if (currentStep.value == 5 && !_isIssuingQuickTicket) {
+        currentStep.value = 4;
+      } else if (currentStep.value == 4 && !_isIssuingQuickTicket) {
         // Guards against a double tap issuing two tickets. Not isLoading:
         // that is shared with the services fetch and would swallow the tap.
         _isIssuingQuickTicket = true;
         visitPurpose.value = 'INQUIRY';
-        submitBooking('', 'purpose.inquiry'.tr)
-            .whenComplete(() => _isIssuingQuickTicket = false);
+        submitBooking(
+          '',
+          'purpose.inquiry'.tr,
+        ).whenComplete(() => _isIssuingQuickTicket = false);
       }
       return;
     }
@@ -695,7 +697,7 @@ class KioskController extends GetxController {
         // Gender is now the first step after the welcome button, so back
         // returns to welcome.
         resetBooking();
-      } else if (isQuickTicket.value && currentStep.value == 5) {
+      } else if (isQuickTicket.value && currentStep.value == 4) {
         // ຮັບບັດຄິວ skips age/ethnicity, so disability goes back to gender.
         currentStep.value = 2;
       } else {

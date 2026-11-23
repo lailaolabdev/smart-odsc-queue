@@ -381,10 +381,12 @@ class KioskView extends GetView<KioskController> {
       title: 'step.ticket_choice.title'.tr,
       showLogo: false,
       lockTitleHeight: true,
-      // ຮັບບັດຄິວ sits centred; ສະໜອງຂໍ້ມູນ peeks in from the right and is
-      // brought to the centre by swiping left (or tapping it).
-      child: _SwipeCardCarousel(
+      // Keep the quick-ticket card centred while showing the information
+      // option beside it.
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const Expanded(child: SizedBox()),
           _buildOptionCard(
             label: 'step.ticket_choice.quick'.tr,
             icon: Icons.confirmation_number_rounded,
@@ -392,6 +394,8 @@ class KioskView extends GetView<KioskController> {
             onTap: controller.issueQuickTicket,
             scale: 1.485,
             highlighted: true,
+            gifAsset: 'assets/images/receipt-print-hd.gif',
+            gifFadeBottom: 0.1,
             fixedLabelLines: 2,
           ),
           Expanded(
