@@ -75,6 +75,28 @@ class ForceUpdateController extends GetxController {
     }
   }
 
+  /// Stops a running download and returns to the idle state, so a stalled
+  /// download (slow or lost network) is never a dead end. Only the download
+  /// can be cancelled: once Android's installer is up, its own dialog has a
+  /// cancel button and we no longer control it.
+  Future<void> cancelUpdate() async {
+    if (phase.value != UpdatePhase.downloading) return;
+    AppLogger.info('Force-update: download cancelled by user');
+    // Reset the screen first: the native call must not be able to keep the
+    // user stuck if it never answers.
+    // Stop listening first so a late progress event can't flip it back.
+    unawaited(_sub?.cancel());
+    _sub = null;
+    progress.value = 0;
+    errorMessage.value = null;
+    phase.value = UpdatePhase.idle;
+    try {
+      await OtaUpdate().cancel().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      AppLogger.warning('Force-update: cancel failed: $e');
+    }
+  }
+
   void _onEvent(OtaEvent event) {
     switch (event.status) {
       case OtaStatus.DOWNLOADING:

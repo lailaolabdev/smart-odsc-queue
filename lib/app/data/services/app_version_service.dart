@@ -8,7 +8,11 @@ import '../constants/api_endpoints.dart';
 
 /// Outcome of a single app-version check.
 ///
-///   * [upToDate]            — installed versionCode >= backend minVersionCode.
+///   * [upToDate]            — installed versionCode >= backend minVersionCode
+///                             and nothing newer is published.
+///   * [updateAvailable]     — installed is still allowed, but a newer build
+///                             (latestVersionCode) with an apkUrl is published.
+///                             The kiosk offers it; the user may decline.
 ///   * [forceUpdateRequired] — installed versionCode < backend minVersionCode.
 ///   * [unknownFailOpen]     — anything went wrong (no network, parse error,
 ///                             timeout, garbage buildNumber). We DO NOT block
@@ -16,7 +20,12 @@ import '../constants/api_endpoints.dart';
 ///                             itself the first time the master-data service
 ///                             hiccups. Treated as "let them through, try
 ///                             again next launch".
-enum AppVersionStatus { upToDate, forceUpdateRequired, unknownFailOpen }
+enum AppVersionStatus {
+  upToDate,
+  updateAvailable,
+  forceUpdateRequired,
+  unknownFailOpen,
+}
 
 class AppVersionResult {
   final AppVersionStatus status;
@@ -147,9 +156,18 @@ class AppVersionService {
         return lastResult!;
       }
 
-      final status = minVersionCode > installed
-          ? AppVersionStatus.forceUpdateRequired
-          : AppVersionStatus.upToDate;
+      final hasNewerApk = latestVersionCode != null &&
+          latestVersionCode > installed &&
+          apkUrl != null &&
+          apkUrl.isNotEmpty;
+      final AppVersionStatus status;
+      if (minVersionCode > installed) {
+        status = AppVersionStatus.forceUpdateRequired;
+      } else if (hasNewerApk) {
+        status = AppVersionStatus.updateAvailable;
+      } else {
+        status = AppVersionStatus.upToDate;
+      }
 
       lastResult = AppVersionResult(
         status: status,

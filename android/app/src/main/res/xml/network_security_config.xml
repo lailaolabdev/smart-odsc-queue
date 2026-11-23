@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Everything stays HTTPS-only (Android's default) except the device itself:
+  local testing reaches the Mac's backend over `adb reverse` at
+  http://localhost:8080, and the in-app update (ota_update) downloads the
+  APK through Android's network stack, which blocks cleartext otherwise.
+  Production URLs are https, so this has no effect there.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
